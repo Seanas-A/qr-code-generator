@@ -302,3 +302,42 @@ input[type="range"].option__control {
 .app__footer a {
   color: var(--accent);
 }
+
+/* Réglages repliés par défaut : l'écran reste simple à l'arrivée. */
+.advanced {
+  margin-top: 1rem;
+}
+
+.advanced > summary {
+  cursor: pointer;
+  width: fit-content;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  list-style: none;
+}
+
+.advanced > summary::-webkit-details-marker {
+  display: none;
+}
+
+.advanced > summary::before {
+  content: "▸ ";
+}
+
+.advanced[open] > summary::before {
+  content: "▾ ";
+}
+
+.advanced > summary:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.advanced__help {
+  margin: 0.7rem 0 0;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}

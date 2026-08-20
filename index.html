@@ -62,20 +62,26 @@
 
       <div class="options options--shared">
         <label class="option">
-          <span class="option__label">Correction d'erreur</span>
-          <select id="ecc-select" class="option__control">
-            <option value="L">Faible (L) &mdash; 7 %</option>
-            <option value="M" selected>Moyenne (M) &mdash; 15 %</option>
-            <option value="Q">Élevée (Q) &mdash; 25 %</option>
-            <option value="H">Maximale (H) &mdash; 30 %</option>
-          </select>
-        </label>
-
-        <label class="option">
           <span class="option__label">Taille <output id="size-output">512 px</output></span>
           <input id="size-range" type="range" class="option__control" min="128" max="1024" step="32" value="512">
         </label>
       </div>
+
+      <details class="advanced">
+        <summary>Options avancées</summary>
+        <div class="options">
+          <label class="option">
+            <span class="option__label">Correction d'erreur</span>
+            <select id="ecc-select" class="option__control">
+              <option value="L">Faible (L) &mdash; 7 %</option>
+              <option value="M" selected>Moyenne (M) &mdash; 15 %</option>
+              <option value="Q">Élevée (Q) &mdash; 25 %</option>
+              <option value="H">Maximale (H) &mdash; 30 %</option>
+            </select>
+          </label>
+        </div>
+        <p class="advanced__help">Plus la correction est élevée, plus le code reste lisible s'il est abîmé ou partiellement masqué — mais plus il est dense. « Moyenne » convient dans presque tous les cas.</p>
+      </details>
     </section>
 
     <section class="result" aria-live="polite">
