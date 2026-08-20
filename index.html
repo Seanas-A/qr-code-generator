@@ -37,7 +37,7 @@
       <div id="pane-wifi" role="tabpanel" aria-labelledby="tab-wifi" hidden>
         <label class="field">
           <span class="field__label">Nom du réseau (SSID)</span>
-          <input id="ssid-input" type="text" class="field__input" placeholder="Livebox-A1B2" autocomplete="off" spellcheck="false">
+          <input id="ssid-input" type="text" class="field__input" placeholder="Wifi-Invites" autocomplete="off" spellcheck="false">
         </label>
 
         <div class="options">
@@ -73,39 +73,37 @@
         <div class="options">
           <label class="option">
             <span class="option__label">Prénom</span>
-            <input id="contact-first" type="text" class="option__control" placeholder="Alex" autocomplete="off">
+            <input id="contact-first" type="text" class="option__control" placeholder="Jane" autocomplete="off">
           </label>
           <label class="option">
             <span class="option__label">Nom</span>
-            <input id="contact-last" type="text" class="option__control" placeholder="Martin" autocomplete="off">
+            <input id="contact-last" type="text" class="option__control" placeholder="Doe" autocomplete="off">
           </label>
         </div>
         <label class="field field--spaced">
           <span class="field__label">Organisation <span class="optional">facultatif</span></span>
-          <input id="contact-org" type="text" class="field__input" placeholder="AS Monaco" autocomplete="off">
+          <input id="contact-org" type="text" class="field__input" placeholder="Ma société" autocomplete="off">
         </label>
         <div class="options">
           <label class="option">
             <span class="option__label">Téléphone</span>
-            <input id="contact-phone" type="text" class="option__control" placeholder="+377 12 34 56 78" autocomplete="off" spellcheck="false">
+            <input id="contact-phone" type="text" class="option__control" placeholder="+33 6 12 34 56 78" autocomplete="off" spellcheck="false">
           </label>
           <label class="option">
             <span class="option__label">E-mail</span>
-            <input id="contact-email" type="text" class="option__control" placeholder="alex@exemple.com" autocomplete="off" spellcheck="false">
+            <input id="contact-email" type="text" class="option__control" placeholder="jane.doe@exemple.com" autocomplete="off" spellcheck="false">
           </label>
         </div>
-      </div>
-
-      <div class="options options--shared">
-        <label class="option">
-          <span class="option__label">Taille <output id="size-output">512 px</output></span>
-          <input id="size-range" type="range" class="option__control" min="128" max="1024" step="32" value="512">
-        </label>
       </div>
 
       <details class="advanced">
         <summary>Options avancées</summary>
         <div class="options">
+          <label class="option">
+            <span class="option__label">Taille <output id="size-output">512 px</output></span>
+            <input id="size-range" type="range" class="option__control" min="128" max="1024" step="32" value="512">
+          </label>
+
           <label class="option">
             <span class="option__label">Correction d'erreur</span>
             <select id="ecc-select" class="option__control">
@@ -116,7 +114,7 @@
             </select>
           </label>
         </div>
-        <p class="advanced__help">Plus la correction est élevée, plus le code reste lisible s'il est abîmé ou partiellement masqué — mais plus il est dense. « Moyenne » convient dans presque tous les cas.</p>
+        <p class="advanced__help">La taille fixe la dimension des images exportées. Plus la correction d'erreur est élevée, plus le code reste lisible s'il est abîmé ou partiellement masqué — mais plus il est dense. Les valeurs par défaut conviennent dans presque tous les cas.</p>
       </details>
     </section>
 

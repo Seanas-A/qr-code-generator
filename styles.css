@@ -249,12 +249,6 @@ input[type="range"].option__control {
   font-size: 0.82rem;
 }
 
-.options--shared {
-  margin-top: 1.25rem;
-  padding-top: 1.1rem;
-  border-top: 1px solid var(--border);
-}
-
 [hidden] {
   display: none !important;
 }
@@ -306,7 +300,9 @@ input[type="range"].option__control {
 
 /* Réglages repliés par défaut : l'écran reste simple à l'arrivée. */
 .advanced {
-  margin-top: 1rem;
+  margin-top: 1.25rem;
+  padding-top: 1.1rem;
+  border-top: 1px solid var(--border);
 }
 
 .advanced > summary {

@@ -38,8 +38,9 @@ commande.
 
 ## 2. Application complète — `index.html`
 
-Même chose avec les réglages fins : choix du niveau de correction d'erreur (L 7 % → H 30 %) et
-de la taille d'export. S'ouvre aussi par double-clic ; pour la servir :
+Même chose, avec deux réglages regroupés sous « Options avancées », replié par défaut pour que
+l'écran d'arrivée reste simple : taille d'export et niveau de correction d'erreur (L 7 % → H
+30 %). S'ouvre aussi par double-clic ; pour la servir :
 
 ```bash
 python3 -m http.server 8123
