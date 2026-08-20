@@ -42,6 +42,41 @@ de la taille d'export. S'ouvre aussi par double-clic ; pour la servir :
 python3 -m http.server 8123
 ```
 
+## Hébergement
+
+Le site est publié sur GitHub Pages : **https://seanas-a.github.io/qr-code-generator/**
+
+C'est un site entièrement statique, sans build ni serveur : GitHub sert les fichiers tels quels
+(le fichier `.nojekyll` désactive le traitement Jekyll, inutile ici). Pour mettre à jour le site,
+il suffit de pousser sur `main` ; le déploiement prend une minute.
+
+```bash
+git add -A && git commit -m "..." && git push
+```
+
+Quelques repères sur les quotas du plan gratuit, tous largement hors d'atteinte ici :
+
+| Limite GitHub Pages | Valeur | Ce projet |
+| --- | --- | --- |
+| Taille du site | 1 Go | 156 Ko |
+| Bande passante | 100 Go/mois (souple) | 13,7 Ko par visite (compressé), soit ~7,8 millions de visites |
+| Déploiements | 10 par heure | quelques-uns par jour au plus |
+
+Il n'y a **rien à limiter en débit** : aucun serveur, aucune API, aucune base de données. Chaque
+visiteur télécharge des fichiers puis tout se calcule sur son appareil. GitHub ne facture pas la
+bande passante — en cas de trafic anormal, le pire scénario est un courriel demandant de réduire
+la charge, jamais une facture. GitHub Pages n'offre d'ailleurs aucun réglage de limitation ; si
+le besoin apparaissait, il faudrait placer un service comme Cloudflare devant le domaine.
+
+Deux réserves à connaître :
+
+- GitHub Pages requiert un **dépôt public** sur un compte gratuit ; l'hébergement depuis un
+  dépôt privé demande un abonnement payant.
+- Les conditions d'utilisation excluent de s'en servir comme hébergement gratuit d'une activité
+  commerciale. Pour un usage professionnel, Cloudflare Pages ou Netlify conviennent mieux. Elles
+  déconseillent aussi de traiter des données sensibles : ce projet y échappe par construction,
+  puisqu'aucune saisie — clé Wi-Fi comprise — ne quitte le navigateur.
+
 ## Le mode Wi-Fi
 
 Le contenu encodé suit le format reconnu par iOS 11+ et Android :
