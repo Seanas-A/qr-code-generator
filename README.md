@@ -118,11 +118,11 @@ Le contenu encodé est une vCard 3.0 :
 ```
 BEGIN:VCARD
 VERSION:3.0
-N:Doe;Jane;;;
-FN:Jane Doe
+N:Doe;John;;;
+FN:John Doe
 ORG:Ma société
 TEL;TYPE=CELL:+33 6 12 34 56 78
-EMAIL;TYPE=INTERNET:jane.doe@exemple.com
+EMAIL;TYPE=INTERNET:john.doe@exemple.com
 END:VCARD
 ```
 
@@ -152,7 +152,7 @@ dense qu'une URL (version 9 environ contre 3), donc à imprimer un peu plus gran
   taille réelle qui est affichée sous l'aperçu.
 - Export PNG (matriciel) et SVG (vectoriel, net à n'importe quelle taille), plus copie dans le
   presse-papiers. Le nom du fichier décrit son contenu : `qr-exemple.com.png`,
-  `wifi-Wifi-Invites.svg`, `contact-Jane-Doe.png`, `qr-texte.png`.
+  `wifi-Wifi-Invites.svg`, `contact-John-Doe.png`, `qr-texte.png`.
 - Marge blanche de 4 modules incluse dans les exports, comme l'exige la spécification.
 - Thèmes clair et sombre suivant le réglage du système.
 

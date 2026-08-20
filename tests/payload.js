@@ -174,18 +174,18 @@ equal('accents conservés', Payload.text('Café crème à 2 €'), 'Café crème
 const CRLF = '\r\n';
 
 equal('fiche complète',
-  Payload.vcard({ firstName: 'Jane', lastName: 'Doe', org: 'Ma société',
-                  phone: '+33 6 12 34 56 78', email: 'jane.doe@exemple.com' }),
-  ['BEGIN:VCARD', 'VERSION:3.0', 'N:Doe;Jane;;;', 'FN:Jane Doe', 'ORG:Ma société',
-   'TEL;TYPE=CELL:+33 6 12 34 56 78', 'EMAIL;TYPE=INTERNET:jane.doe@exemple.com', 'END:VCARD'].join(CRLF));
+  Payload.vcard({ firstName: 'John', lastName: 'Doe', org: 'Ma société',
+                  phone: '+33 6 12 34 56 78', email: 'john.doe@exemple.com' }),
+  ['BEGIN:VCARD', 'VERSION:3.0', 'N:Doe;John;;;', 'FN:John Doe', 'ORG:Ma société',
+   'TEL;TYPE=CELL:+33 6 12 34 56 78', 'EMAIL;TYPE=INTERNET:john.doe@exemple.com', 'END:VCARD'].join(CRLF));
 
 equal('champs optionnels omis',
-  Payload.vcard({ firstName: 'Jane', lastName: 'Doe' }),
-  ['BEGIN:VCARD', 'VERSION:3.0', 'N:Doe;Jane;;;', 'FN:Jane Doe', 'END:VCARD'].join(CRLF));
+  Payload.vcard({ firstName: 'John', lastName: 'Doe' }),
+  ['BEGIN:VCARD', 'VERSION:3.0', 'N:Doe;John;;;', 'FN:John Doe', 'END:VCARD'].join(CRLF));
 
 equal('prénom seul',
-  Payload.vcard({ firstName: 'Jane', phone: '0600000000' }),
-  ['BEGIN:VCARD', 'VERSION:3.0', 'N:;Jane;;;', 'FN:Jane',
+  Payload.vcard({ firstName: 'John', phone: '0600000000' }),
+  ['BEGIN:VCARD', 'VERSION:3.0', 'N:;John;;;', 'FN:John',
    'TEL;TYPE=CELL:0600000000', 'END:VCARD'].join(CRLF));
 
 equal('nom seul',
@@ -197,8 +197,8 @@ equal('sans nom : rien à encoder',
 equal('fiche vide', Payload.vcard({}), '');
 equal('espaces seuls : rien à encoder', Payload.vcard({ firstName: '  ', lastName: ' ' }), '');
 equal('espaces de bord retirés',
-  Payload.vcard({ firstName: '  Jane  ', lastName: ' Doe ' }),
-  ['BEGIN:VCARD', 'VERSION:3.0', 'N:Doe;Jane;;;', 'FN:Jane Doe', 'END:VCARD'].join(CRLF));
+  Payload.vcard({ firstName: '  John  ', lastName: ' Doe ' }),
+  ['BEGIN:VCARD', 'VERSION:3.0', 'N:Doe;John;;;', 'FN:John Doe', 'END:VCARD'].join(CRLF));
 
 // Séparateurs de vCard : virgule et point-virgule doivent être échappés, sinon
 // « Doe;Dupont » serait lu comme deux composants du champ N.
@@ -218,8 +218,8 @@ equal('antislash échappé une seule fois',
 
 // Un vrai retour à la ligne casserait la structure : il devient la séquence \n.
 equal('retour à la ligne converti',
-  Payload.vcard({ firstName: 'Jane', lastName: 'Doe', org: 'Ligne 1\nLigne 2' }),
-  ['BEGIN:VCARD', 'VERSION:3.0', 'N:Doe;Jane;;;', 'FN:Jane Doe',
+  Payload.vcard({ firstName: 'John', lastName: 'Doe', org: 'Ligne 1\nLigne 2' }),
+  ['BEGIN:VCARD', 'VERSION:3.0', 'N:Doe;John;;;', 'FN:John Doe',
    'ORG:Ligne 1\\nLigne 2', 'END:VCARD'].join(CRLF));
 
 equal('accents conservés',
@@ -229,7 +229,7 @@ equal('accents conservés',
 run++;
 {
   // Le séparateur de lignes doit être CRLF, comme l'exige la spécification.
-  const card = Payload.vcard({ firstName: 'Jane', lastName: 'Doe' });
+  const card = Payload.vcard({ firstName: 'John', lastName: 'Doe' });
   if (/[^\r]\n/.test(card)) {
     failed++;
     console.log('ÉCHEC  vCard : saut de ligne sans retour chariot (CRLF attendu)');
@@ -238,7 +238,7 @@ run++;
 
 run++;
 {
-  const card = Payload.vcard({ firstName: 'Jane', lastName: 'Doe' });
+  const card = Payload.vcard({ firstName: 'John', lastName: 'Doe' });
   if (!card.startsWith('BEGIN:VCARD') || !card.endsWith('END:VCARD')) {
     failed++;
     console.log('ÉCHEC  vCard : délimiteurs BEGIN/END manquants');
@@ -246,15 +246,15 @@ run++;
 }
 
 deepEqual('contact complet : aucun avertissement',
-  Payload.vcardWarnings({ firstName: 'Jane', phone: '0600000000', email: 'a@b.com' }), []);
+  Payload.vcardWarnings({ firstName: 'John', phone: '0600000000', email: 'a@b.com' }), []);
 deepEqual('contact sans moyen de contact',
-  Payload.vcardWarnings({ firstName: 'Jane' }),
+  Payload.vcardWarnings({ firstName: 'John' }),
   ['ni téléphone ni e-mail : la fiche ne contiendra qu\'un nom']);
 deepEqual('e-mail sans arobase',
-  Payload.vcardWarnings({ firstName: 'Jane', email: 'pas-un-email' }),
+  Payload.vcardWarnings({ firstName: 'John', email: 'pas-un-email' }),
   ['l\'adresse e-mail ne contient pas d\'arobase']);
 deepEqual('téléphone seul : aucun avertissement',
-  Payload.vcardWarnings({ firstName: 'Jane', phone: '0600000000' }), []);
+  Payload.vcardWarnings({ firstName: 'John', phone: '0600000000' }), []);
 
 // --- Structure du format -----------------------------------------------------
 
