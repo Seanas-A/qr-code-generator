@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Générateur de QR code</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="app">
+    <header class="app__header">
+      <h1>Générateur de QR code</h1>
+      <p class="app__subtitle">Un lien à partager, ou un réseau Wi-Fi auquel se connecter sans dicter la clé. Tout se fait dans le navigateur, aucune donnée n'est envoyée.</p>
+    </header>
+
+    <section class="panel">
+      <div class="tabs" role="tablist" aria-label="Type de QR code">
+        <button type="button" role="tab" id="tab-url" aria-controls="pane-url" aria-selected="true">Site web</button>
+        <button type="button" role="tab" id="tab-wifi" aria-controls="pane-wifi" aria-selected="false">Réseau Wi-Fi</button>
+      </div>
+
+      <div id="pane-url" role="tabpanel" aria-labelledby="tab-url">
+        <label class="field">
+          <span class="field__label">Adresse du site</span>
+          <input
+            id="url-input"
+            type="text"
+            class="field__input"
+            placeholder="https://exemple.com/ma-page"
+            autocomplete="off"
+            spellcheck="false">
+        </label>
+      </div>
+
+      <div id="pane-wifi" role="tabpanel" aria-labelledby="tab-wifi" hidden>
+        <label class="field">
+          <span class="field__label">Nom du réseau (SSID)</span>
+          <input id="ssid-input" type="text" class="field__input" placeholder="Livebox-A1B2" autocomplete="off" spellcheck="false">
+        </label>
+
+        <div class="options">
+          <label class="option">
+            <span class="option__label">Sécurité</span>
+            <select id="security-select" class="option__control">
+              <option value="WPA" selected>WPA / WPA2 / WPA3</option>
+              <option value="WEP">WEP (ancien)</option>
+              <option value="nopass">Ouvert, sans mot de passe</option>
+            </select>
+          </label>
+
+          <label class="option">
+            <span class="option__label">Mot de passe</span>
+            <input id="wifi-password" type="text" class="option__control" placeholder="clé du réseau" autocomplete="off" spellcheck="false">
+          </label>
+        </div>
+
+        <div class="check">
+          <input id="hidden-network" type="checkbox">
+          <label for="hidden-network">Réseau caché (SSID non diffusé)</label>
+        </div>
+      </div>
+
+      <div class="options options--shared">
+        <label class="option">
+          <span class="option__label">Correction d'erreur</span>
+          <select id="ecc-select" class="option__control">
+            <option value="L">Faible (L) &mdash; 7 %</option>
+            <option value="M" selected>Moyenne (M) &mdash; 15 %</option>
+            <option value="Q">Élevée (Q) &mdash; 25 %</option>
+            <option value="H">Maximale (H) &mdash; 30 %</option>
+          </select>
+        </label>
+
+        <label class="option">
+          <span class="option__label">Taille <output id="size-output">512 px</output></span>
+          <input id="size-range" type="range" class="option__control" min="128" max="1024" step="32" value="512">
+        </label>
+      </div>
+    </section>
+
+    <section class="result" aria-live="polite">
+      <div class="preview" id="preview">
+        <canvas id="canvas" class="preview__canvas" role="img" aria-label="Aperçu du QR code"></canvas>
+        <p class="preview__placeholder" id="placeholder">Le QR code apparaîtra ici.</p>
+      </div>
+
+      <p class="status" id="status"></p>
+      <p class="notice" id="notice" hidden></p>
+
+      <div class="actions">
+        <button id="download-png" type="button" class="button button--primary" disabled>Télécharger le PNG</button>
+        <button id="download-svg" type="button" class="button" disabled>Télécharger le SVG</button>
+        <button id="copy-png" type="button" class="button" disabled>Copier l'image</button>
+      </div>
+    </section>
+    <footer class="app__footer">
+      Tout est calculé dans votre navigateur, aucune donnée n'est envoyée.
+      <a href="qr-code-generator.html" download>Télécharger la version hors ligne</a> — un seul fichier, à garder ou à transmettre.
+    </footer>
+  </main>
+
+  <script src="qrcode.js"></script>
+  <script src="payload.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

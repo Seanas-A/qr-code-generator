@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Générateur de QR code</title>
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg: #f4f5f7;
+    --surface: #fff;
+    --border: #e2e4e9;
+    --text: #14161a;
+    --muted: #666c76;
+    --accent: #2f6df6;
+    --accent-text: #fff;
+    --danger: #c0392b;
+    --warn-bg: #fff8e5;
+    --warn-text: #7a5200;
+    --warn-border: #f0d9a0;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #121316;
+      --surface: #1b1d21;
+      --border: #2c2f35;
+      --text: #f0f1f3;
+      --muted: #9aa1ac;
+      --accent: #5a8dff;
+      --accent-text: #0d1117;
+      --danger: #ff7a6b;
+      --warn-bg: #2a2313;
+      --warn-text: #e8c882;
+      --warn-border: #4a3d1c;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 2.5rem 1.25rem 4rem;
+    background: var(--bg);
+    color: var(--text);
+    font: 16px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  main { max-width: 34rem; margin: 0 auto; }
+  h1 { margin: 0 0 .35rem; font-size: 1.5rem; letter-spacing: -.02em; }
+  .sub { margin: 0 0 1.5rem; color: var(--muted); font-size: .95rem; }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1.25rem;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, .06), 0 8px 24px rgba(0, 0, 0, .06);
+  }
+
+  /* Onglets de mode */
+  .tabs { display: flex; gap: .35rem; margin-bottom: 1.25rem; padding: .25rem;
+          background: var(--bg); border: 1px solid var(--border); border-radius: 10px; }
+  .tabs button {
+    flex: 1; padding: .55rem .5rem; border: 1px solid transparent; border-radius: 7px;
+    background: none; color: var(--muted); font: 600 .9rem inherit; font-family: inherit; cursor: pointer;
+  }
+  .tabs button[aria-selected="true"] { background: var(--surface); border-color: var(--border); color: var(--text); }
+
+  label { display: block; margin-bottom: .4rem; font-size: .8rem; font-weight: 600;
+          text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+  input[type="text"], select {
+    width: 100%;
+    padding: .75rem .8rem;
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    background: var(--bg);
+    color: var(--text);
+    font: .95rem/1.4 ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  select { font-family: inherit; }
+  input:focus-visible, select:focus-visible, button:focus-visible {
+    outline: 2px solid var(--accent); outline-offset: 2px;
+  }
+  input:disabled { opacity: .5; }
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: .9rem; }
+  .field + .field, .field + .row, .row + .field { margin-top: .9rem; }
+  .check { display: flex; align-items: center; gap: .5rem; margin-top: .9rem; }
+  .check input { width: auto; margin: 0; accent-color: var(--accent); }
+  .check label { margin: 0; text-transform: none; letter-spacing: normal; font-size: .88rem;
+                 font-weight: 400; color: var(--text); }
+  @media (max-width: 30rem) { .row { grid-template-columns: 1fr; } }
+
+  .preview {
+    display: flex; align-items: center; justify-content: center;
+    min-height: 15rem; margin-top: 1.25rem; padding: 1rem;
+    border: 1px dashed var(--border); border-radius: 12px; background: var(--bg);
+  }
+  canvas { display: none; width: 100%; max-width: 17rem; height: auto; border-radius: 6px; image-rendering: pixelated; }
+  .ready canvas { display: block; }
+  .ready .hint { display: none; }
+  .hint { margin: 0; color: var(--muted); font-size: .9rem; text-align: center; }
+  .status { min-height: 1.4rem; margin: .9rem 0 0; text-align: center; font-size: .82rem; color: var(--muted); }
+  .status.err { color: var(--danger); }
+  .notice {
+    margin: .9rem 0 0; padding: .6rem .8rem; border: 1px solid var(--warn-border);
+    border-radius: 9px; background: var(--warn-bg); color: var(--warn-text); font-size: .82rem;
+  }
+  .actions { display: flex; flex-wrap: wrap; gap: .6rem; justify-content: center; margin-top: .9rem; }
+  button.act {
+    padding: .6rem 1rem; border: 1px solid var(--border); border-radius: 9px;
+    background: var(--surface); color: var(--text); font: 500 .9rem inherit; font-family: inherit; cursor: pointer;
+  }
+  button.act.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-text); }
+  button.act:hover:not(:disabled) { border-color: var(--accent); }
+  button.act:disabled { opacity: .45; cursor: not-allowed; }
+  footer { margin-top: 1.25rem; text-align: center; font-size: .78rem; color: var(--muted); }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Générateur de QR code</h1>
+  <p class="sub">Un lien à partager, ou un réseau Wi-Fi auquel se connecter sans dicter la clé. Tout est calculé sur votre appareil : ce fichier fonctionne sans connexion internet.</p>
+
+  <div class="card">
+    <div class="tabs" role="tablist" aria-label="Type de QR code">
+      <button type="button" role="tab" id="tab-url" aria-controls="pane-url" aria-selected="true">Site web</button>
+      <button type="button" role="tab" id="tab-wifi" aria-controls="pane-wifi" aria-selected="false">Réseau Wi-Fi</button>
+    </div>
+
+    <div id="pane-url" role="tabpanel" aria-labelledby="tab-url">
+      <div class="field">
+        <label for="url">Adresse du site</label>
+        <input id="url" type="text" placeholder="https://exemple.com/ma-page" autocomplete="off" spellcheck="false">
+      </div>
+    </div>
+
+    <div id="pane-wifi" role="tabpanel" aria-labelledby="tab-wifi" hidden>
+      <div class="field">
+        <label for="ssid">Nom du réseau (SSID)</label>
+        <input id="ssid" type="text" placeholder="Livebox-A1B2" autocomplete="off" spellcheck="false">
+      </div>
+      <div class="row">
+        <div class="field">
+          <label for="security">Sécurité</label>
+          <select id="security">
+            <option value="WPA" selected>WPA / WPA2 / WPA3</option>
+            <option value="WEP">WEP (ancien)</option>
+            <option value="nopass">Ouvert, sans mot de passe</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="wifi-password">Mot de passe</label>
+          <input id="wifi-password" type="text" placeholder="clé du réseau" autocomplete="off" spellcheck="false">
+        </div>
+      </div>
+      <div class="check">
+        <input id="hidden-network" type="checkbox">
+        <label for="hidden-network">Réseau caché (SSID non diffusé)</label>
+      </div>
+    </div>
+
+    <div class="preview" id="preview">
+      <canvas id="canvas" role="img" aria-label="Aperçu du QR code"></canvas>
+      <p class="hint" id="hint">Le QR code apparaîtra ici.</p>
+    </div>
+
+    <p class="status" id="status" aria-live="polite"></p>
+    <p class="notice" id="notice" hidden></p>
+
+    <div class="actions">
+      <button id="png" class="act primary" type="button" disabled>Télécharger le PNG</button>
+      <button id="svg" class="act" type="button" disabled>Télécharger le SVG</button>
+      <button id="copy" class="act" type="button" disabled>Copier l'image</button>
+    </div>
+  </div>
+
+  <footer>Aucune donnée n'est envoyée sur internet. Fichier autonome, partageable tel quel.</footer>
+</main>
+
+<script>
+/* <!-- INJECT:qrcode.js --> */
+</script>
+
+<script>
+/* <!-- INJECT:payload.js --> */
+</script>
+
+<script>
+/* Interface : saisie -> rendu du QR code -> export. */
+(function () {
+  'use strict';
+
+  var QUIET = 4;        // marge blanche obligatoire, en modules
+  var ECC = 'M';        // correction d'erreur : bon compromis densité / robustesse
+  var TARGET_PX = 1024; // taille visée pour les exports (impression confortable)
+
+  var tabs = {
+    url: document.getElementById('tab-url'),
+    wifi: document.getElementById('tab-wifi'),
+  };
+  var panes = {
+    url: document.getElementById('pane-url'),
+    wifi: document.getElementById('pane-wifi'),
+  };
+  var urlInput = document.getElementById('url');
+  var ssidInput = document.getElementById('ssid');
+  var securitySelect = document.getElementById('security');
+  var passwordInput = document.getElementById('wifi-password');
+  var hiddenCheck = document.getElementById('hidden-network');
+
+  var canvas = document.getElementById('canvas');
+  var preview = document.getElementById('preview');
+  var hint = document.getElementById('hint');
+  var status = document.getElementById('status');
+  var notice = document.getElementById('notice');
+  var pngBtn = document.getElementById('png');
+  var svgBtn = document.getElementById('svg');
+  var copyBtn = document.getElementById('copy');
+
+  var mode = 'url';
+  var current = null;
+
+  function fileName() {
+    if (mode === 'wifi') {
+      var ssid = ssidInput.value.trim().replace(/[^a-zA-Z0-9.\-]+/g, '-').replace(/^-+|-+$/g, '');
+      return ssid ? 'wifi-' + ssid : 'wifi-qr';
+    }
+    var host = '';
+    try { host = new URL(current.text).hostname; } catch (e) { host = ''; }
+    var slug = host.replace(/[^a-zA-Z0-9.\-]/g, '');
+    return slug ? 'qr-' + slug : 'qr-code';
+  }
+
+  function draw(qr) {
+    var total = qr.size + QUIET * 2;
+    // Échelle entière : chaque module occupe un nombre entier de pixels, donc aucun flou.
+    var scale = Math.max(1, Math.floor(TARGET_PX / total));
+    var px = total * scale;
+    canvas.width = px;
+    canvas.height = px;
+    var ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(0, 0, px, px);
+    ctx.fillStyle = '#000';
+    for (var y = 0; y < qr.size; y++) {
+      for (var x = 0; x < qr.size; x++) {
+        if (qr.modules[y][x]) ctx.fillRect((x + QUIET) * scale, (y + QUIET) * scale, scale, scale);
+      }
+    }
+    return px;
+  }
+
+  function toSvg(qr, px) {
+    var total = qr.size + QUIET * 2;
+    var path = [];
+    for (var y = 0; y < qr.size; y++) {
+      for (var x = 0; x < qr.size; x++) {
+        if (qr.modules[y][x]) path.push('M' + (x + QUIET) + ' ' + (y + QUIET) + 'h1v1h-1z');
+      }
+    }
+    return '<?xml version="1.0" encoding="UTF-8"?>\n' +
+      '<svg xmlns="http://www.w3.org/2000/svg" width="' + px + '" height="' + px + '"' +
+      ' viewBox="0 0 ' + total + ' ' + total + '" shape-rendering="crispEdges">' +
+      '<rect width="' + total + '" height="' + total + '" fill="#ffffff"/>' +
+      '<path d="' + path.join('') + '" fill="#000000"/></svg>\n';
+  }
+
+  function setStatus(msg, isError) {
+    status.textContent = msg;
+    status.classList.toggle('err', !!isError);
+  }
+
+  function setNotice(msg) {
+    notice.textContent = msg || '';
+    notice.hidden = !msg;
+  }
+
+  function setEnabled(on) {
+    pngBtn.disabled = !on;
+    svgBtn.disabled = !on;
+    copyBtn.disabled = !on || !window.ClipboardItem;
+  }
+
+  function clear(message) {
+    current = null;
+    preview.classList.remove('ready');
+    hint.textContent = message || 'Le QR code apparaîtra ici.';
+    setEnabled(false);
+    setStatus('');
+    setNotice('');
+  }
+
+  // Contenu à encoder selon le mode, et description affichée sous l'aperçu.
+  function buildPayload() {
+    if (mode === 'wifi') {
+      var options = {
+        ssid: ssidInput.value,
+        security: securitySelect.value,
+        password: passwordInput.value,
+        hidden: hiddenCheck.checked,
+      };
+      var text = Payload.wifi(options);
+      if (text === '') return { text: '', empty: 'Saisissez le nom du réseau.' };
+      var labels = { WPA: 'WPA/WPA2/WPA3', WEP: 'WEP', nopass: 'réseau ouvert' };
+      var describe = 'Réseau ' + ssidInput.value.trim() + ' · ' + labels[options.security] +
+                     (options.hidden ? ' · caché' : '');
+      var warnings = Payload.wifiWarnings(options);
+      var notes = [];
+      // Inutile de prévenir sur un réseau déjà ouvert : il n'y a rien à divulguer.
+      if (options.security !== 'nopass') {
+        notes.push('Ce code contient la clé du réseau : qui le scanne obtient l’accès.');
+      }
+      if (warnings.length) notes.unshift('À vérifier : ' + warnings.join(', ') + '.');
+      return { text: text, describe: describe, notice: notes.join(' ') };
+    }
+    var url = Payload.url(urlInput.value);
+    if (url === '') return { text: '', empty: 'Collez une adresse pour voir le QR code.' };
+    return { text: url, describe: url.length > 46 ? url.slice(0, 45) + '…' : url, notice: '' };
+  }
+
+  function generate() {
+    var payload = buildPayload();
+    if (payload.text === '') {
+      clear(payload.empty);
+      return;
+    }
+    var qr;
+    try {
+      qr = QRCode.encode(payload.text, ECC);
+    } catch (err) {
+      clear();
+      setStatus(err.message, true);
+      return;
+    }
+    var px = draw(qr);
+    current = { qr: qr, text: payload.text, px: px };
+    preview.classList.add('ready');
+    canvas.setAttribute('aria-label', 'QR code : ' + payload.describe);
+    setEnabled(true);
+    setStatus(payload.describe + ' · version ' + qr.version + ' · ' + qr.size + '×' + qr.size +
+              ' modules · image ' + px + '×' + px + ' px');
+    setNotice(payload.notice);
+  }
+
+  function selectMode(next) {
+    mode = next;
+    Object.keys(tabs).forEach(function (key) {
+      tabs[key].setAttribute('aria-selected', String(key === next));
+      panes[key].hidden = key !== next;
+    });
+    (next === 'wifi' ? ssidInput : urlInput).focus();
+    generate();
+  }
+
+  function download(blob, name) {
+    var href = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = href;
+    a.download = name;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(function () { URL.revokeObjectURL(href); }, 1000);
+  }
+
+  var timer = null;
+  function schedule() {
+    clearTimeout(timer);
+    timer = setTimeout(generate, 120);
+  }
+
+  Object.keys(tabs).forEach(function (key) {
+    tabs[key].addEventListener('click', function () { selectMode(key); });
+  });
+  // Navigation clavier entre onglets, comme attendu d'une barre d'onglets.
+  document.querySelector('.tabs').addEventListener('keydown', function (e) {
+    if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+    e.preventDefault();
+    selectMode(mode === 'url' ? 'wifi' : 'url');
+    tabs[mode].focus();
+  });
+
+  [urlInput, ssidInput, passwordInput].forEach(function (el) {
+    el.addEventListener('input', schedule);
+    el.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') { clearTimeout(timer); generate(); }
+    });
+  });
+  hiddenCheck.addEventListener('change', generate);
+  securitySelect.addEventListener('change', function () {
+    // Un réseau ouvert n'a pas de mot de passe : le champ n'a plus de sens.
+    var open = securitySelect.value === 'nopass';
+    passwordInput.disabled = open;
+    if (open) passwordInput.value = '';
+    generate();
+  });
+
+  pngBtn.addEventListener('click', function () {
+    if (!current) return;
+    canvas.toBlob(function (blob) { download(blob, fileName() + '.png'); }, 'image/png');
+  });
+
+  svgBtn.addEventListener('click', function () {
+    if (!current) return;
+    download(new Blob([toSvg(current.qr, current.px)], { type: 'image/svg+xml' }), fileName() + '.svg');
+  });
+
+  copyBtn.addEventListener('click', function () {
+    if (!current || !window.ClipboardItem) return;
+    canvas.toBlob(function (blob) {
+      navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })])
+        .then(function () { setStatus('Image copiée dans le presse-papiers.'); })
+        .catch(function () { setStatus('Copie refusée par le navigateur : utilisez le téléchargement.', true); });
+    }, 'image/png');
+  });
+
+  setEnabled(false);
+  urlInput.focus();
+})();
+</script>
+</body>
+</html>
