@@ -53,16 +53,49 @@ body {
   gap: 1.5rem;
 }
 
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  margin-bottom: 0.5rem;
+}
+
+/* Pastille d'identité : le glyphe reprend celui du favicon. */
+.brand__mark {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 2.35rem;
+  height: 2.35rem;
+  border-radius: 10px;
+  background: var(--accent);
+  color: var(--accent-text);
+}
+
 .app__header h1 {
-  margin: 0 0 0.35rem;
-  font-size: 1.6rem;
-  letter-spacing: -0.02em;
+  margin: 0;
+  font-size: 1.55rem;
+  font-weight: 650;
+  letter-spacing: -0.025em;
 }
 
 .app__subtitle {
   margin: 0;
   color: var(--text-muted);
   font-size: 0.95rem;
+}
+
+/* Les icônes suivent la taille et la couleur du texte qui les accompagne. */
+.icon {
+  width: 1em;
+  height: 1em;
+  flex: none;
+  vertical-align: -0.125em;
+}
+
+.icon--brand {
+  width: 1.35rem;
+  height: 1.35rem;
 }
 
 .panel,
@@ -87,6 +120,10 @@ body {
 }
 
 .tabs button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
   flex: 1 1 6rem;
   padding: 0.55rem 0.5rem;
   border: 1px solid transparent;
@@ -97,12 +134,28 @@ body {
   font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.tabs button:hover:not([aria-selected="true"]) {
+  color: var(--text);
 }
 
 .tabs button[aria-selected="true"] {
   background: var(--surface);
   border-color: var(--border);
   color: var(--text);
+  box-shadow: 0 1px 2px rgba(16, 18, 22, 0.06);
+}
+
+/* L'onglet actif se repère aussi à la couleur de son icône, pas seulement au fond. */
+.tabs button[aria-selected="true"] .icon {
+  color: var(--accent);
+}
+
+.tabs button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 .field {
@@ -113,7 +166,7 @@ body {
 .option__label {
   display: block;
   margin-bottom: 0.4rem;
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -130,6 +183,12 @@ body {
   color: var(--text);
   font-size: 1rem;
   font-family: inherit;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.field__input:hover,
+.option__control:hover {
+  border-color: var(--text-muted);
 }
 
 .field__input {
@@ -189,7 +248,10 @@ input[type="range"].option__control {
   width: 100%;
   max-width: 20rem;
   height: auto;
-  border-radius: 6px;
+  padding: 0.6rem;
+  border-radius: 10px;
+  background: #ffffff;
+  box-shadow: 0 1px 2px rgba(16, 18, 22, 0.1), 0 6px 20px rgba(16, 18, 22, 0.12);
   /* Les modules restent nets quand le canvas est mis à l'échelle. */
   image-rendering: pixelated;
 }
@@ -261,6 +323,9 @@ input[type="range"].option__control {
 }
 
 .button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
   padding: 0.6rem 1rem;
   border: 1px solid var(--border);
   border-radius: 9px;
@@ -292,6 +357,10 @@ input[type="range"].option__control {
   text-align: center;
   font-size: 0.82rem;
   color: var(--text-muted);
+}
+
+.app__footer .icon {
+  color: var(--accent);
 }
 
 .app__footer a {
@@ -353,4 +422,14 @@ textarea.field__input {
   letter-spacing: normal;
   font-weight: 400;
   opacity: 0.75;
+}
+
+/* Respecte le réglage système « réduire les animations ». */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
 }

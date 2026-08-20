@@ -17,7 +17,7 @@ contenu (`payload.js`).
 
 ## 1. Fichier unique — `qr-code-generator.html`
 
-**C'est la version à envoyer aux gens.** Un seul fichier de 45 Ko, HTML + CSS + JS compris,
+**C'est la version à envoyer aux gens.** Un seul fichier de 51 Ko, HTML + CSS + JS compris,
 qu'on ouvre par double-clic. Il fonctionne dans un train, sur une clé USB, en pièce jointe :
 comme il n'appelle aucun CDN, il n'a rien à télécharger pour s'afficher.
 
@@ -62,7 +62,7 @@ Quelques repères sur les quotas du plan gratuit, tous largement hors d'atteinte
 
 | Limite GitHub Pages | Valeur | Ce projet |
 | --- | --- | --- |
-| Taille du site | 1 Go | 106 Ko |
+| Taille du site | 1 Go | 118 Ko |
 | Bande passante | 100 Go/mois (souple) | 13,7 Ko par visite (compressé), soit ~7,8 millions de visites |
 | Déploiements | 10 par heure | quelques-uns par jour au plus |
 
@@ -155,6 +155,26 @@ dense qu'une URL (version 9 environ contre 3), donc à imprimer un peu plus gran
   `wifi-Wifi-Invites.svg`, `contact-John-Doe.png`, `qr-texte.png`.
 - Marge blanche de 4 modules incluse dans les exports, comme l'exige la spécification.
 - Thèmes clair et sombre suivant le réglage du système.
+
+## Habillage
+
+Les icônes de l'interface (onglets, boutons, pied de page) et le glyphe du logo sont des tracés
+SVG écrits à la main sur une grille de 16×16, dans un style linéaire proche de Bootstrap Icons.
+Ils sont définis une seule fois par fichier dans un sprite `<symbol>`, puis réutilisés via
+`<use href="#icon-...">`.
+
+Aucun CDN, ni pour les icônes, ni pour les polices, et c'est un choix délibéré :
+
+- le fichier autonome afficherait des carrés vides hors connexion — exactement le cas d'usage
+  pour lequel il existe ;
+- un CDN transmet l'adresse IP du visiteur à un tiers, alors que la page affirme qu'aucune
+  donnée n'est envoyée. Pour Google Fonts en particulier, le point est sensible en Europe.
+
+La typographie s'appuie sur les polices du système (SF Pro, Segoe UI, Roboto selon l'appareil) :
+rendu natif, aucun octet à télécharger. Une police embarquée en base64 donnerait une identité
+plus marquée au prix d'environ 80 Ko dans le fichier unique — arbitrage écarté pour l'instant.
+
+Le favicon est un SVG en `data:` URI, donc lui aussi disponible hors ligne.
 
 ## Structure
 
