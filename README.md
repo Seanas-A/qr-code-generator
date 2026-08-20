@@ -86,7 +86,7 @@ Deux réserves à connaître :
 Le contenu encodé suit le format reconnu par iOS 11+ et Android :
 
 ```
-WIFI:T:WPA;S:Livebox-A1B2;P:MaCle2026;H:true;;
+WIFI:T:WPA;S:Wifi-Invites;P:MaCle2026;H:true;;
 ```
 
 Trois paramètres suffisent — nom du réseau, type de sécurité, mot de passe — plus une case pour
@@ -118,11 +118,11 @@ Le contenu encodé est une vCard 3.0 :
 ```
 BEGIN:VCARD
 VERSION:3.0
-N:Martin;Alex;;;
-FN:Alex Martin
-ORG:AS Monaco
-TEL;TYPE=CELL:+377 12 34 56 78
-EMAIL;TYPE=INTERNET:alex@exemple.com
+N:Doe;Jane;;;
+FN:Jane Doe
+ORG:Ma société
+TEL;TYPE=CELL:+33 6 12 34 56 78
+EMAIL;TYPE=INTERNET:jane.doe@exemple.com
 END:VCARD
 ```
 
@@ -131,7 +131,7 @@ que iOS et Android proposent spontanément d'ajouter au répertoire. Trois déta
 œuvre méritent l'attention :
 
 - **Échappement propre à vCard.** La virgule et le point-virgule séparent les valeurs et les
-  composants d'un champ : sans échappement, un nom composé comme `Martin;Dupont` serait lu
+  composants d'un champ : sans échappement, un nom composé comme `Doe;Dupont` serait lu
   comme deux composants distincts du champ `N`. Un retour à la ligne saisi dans un champ
   devient la séquence littérale `\n`, sinon la structure ligne par ligne est cassée.
 - **`N` et `FN` sont tous deux obligatoires** en vCard 3.0 : le premier est structuré
@@ -151,8 +151,8 @@ dense qu'une URL (version 9 environ contre 3), donc à imprimer un peu plus gran
   taille obtenue est donc le multiple immédiatement inférieur à la taille demandée, et c'est la
   taille réelle qui est affichée sous l'aperçu.
 - Export PNG (matriciel) et SVG (vectoriel, net à n'importe quelle taille), plus copie dans le
-  presse-papiers. Le nom du fichier décrit son contenu : `qr-asmonaco.com.png`,
-  `wifi-Livebox-A1B2.svg`, `contact-Alex-Martin.png`, `qr-texte.png`.
+  presse-papiers. Le nom du fichier décrit son contenu : `qr-exemple.com.png`,
+  `wifi-Wifi-Invites.svg`, `contact-Jane-Doe.png`, `qr-texte.png`.
 - Marge blanche de 4 modules incluse dans les exports, comme l'exige la spécification.
 - Thèmes clair et sombre suivant le réglage du système.
 

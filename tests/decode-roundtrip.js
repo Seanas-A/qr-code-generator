@@ -285,11 +285,11 @@ function check(label, text, level) {
 const urls = [
   'https://a.co',
   'https://exemple.com/ma-page',
-  'https://www.asmonaco.com/fr/billetterie?match=asm-psg&utm_source=qr',
+  'https://www.exemple.com/fr/billetterie?ref=affiche&utm_source=qr',
   'https://example.com/recherche?q=caf%C3%A9+cr%C3%A8me&page=2#résultats',
   'https://sub.domaine.example.org/très/long/chemin/avec-accents-éàü/et_underscores',
   'mailto:contact@example.com?subject=Bonjour',
-  'tel:+377123456789',
+  'tel:+33612345678',
 ];
 for (const url of urls) {
   for (const level of LEVELS) check('url ' + url.slice(0, 32), url, level);
