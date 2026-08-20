@@ -256,6 +256,92 @@ deepEqual('e-mail sans arobase',
 deepEqual('téléphone seul : aucun avertissement',
   Payload.vcardWarnings({ firstName: 'John', phone: '0600000000' }), []);
 
+// --- Fiche contact : champs étendus -----------------------------------------
+
+equal('fonction',
+  Payload.vcard({ firstName: 'John', lastName: 'Doe', title: 'Directeur technique' }),
+  ['BEGIN:VCARD', 'VERSION:3.0', 'N:Doe;John;;;', 'FN:John Doe',
+   'TITLE:Directeur technique', 'END:VCARD'].join(CRLF));
+
+// Deux types distincts, pour qu'un fixe ne s'affiche pas comme mobile.
+equal('mobile et bureau distingués',
+  Payload.vcard({ firstName: 'John', lastName: 'Doe', phone: '0600000000', workPhone: '0100000000' }),
+  ['BEGIN:VCARD', 'VERSION:3.0', 'N:Doe;John;;;', 'FN:John Doe',
+   'TEL;TYPE=CELL:0600000000', 'TEL;TYPE=WORK:0100000000', 'END:VCARD'].join(CRLF));
+
+equal('bureau seul',
+  Payload.vcard({ firstName: 'John', lastName: 'Doe', workPhone: '0100000000' }),
+  ['BEGIN:VCARD', 'VERSION:3.0', 'N:Doe;John;;;', 'FN:John Doe',
+   'TEL;TYPE=WORK:0100000000', 'END:VCARD'].join(CRLF));
+
+// Les liens sont normalisés comme les URLs du mode « site web ».
+equal('liens multiples, schéma ajouté',
+  Payload.vcard({ firstName: 'John', lastName: 'Doe',
+                  links: ['linkedin.com/in/john-doe', 'https://exemple.com'] }),
+  ['BEGIN:VCARD', 'VERSION:3.0', 'N:Doe;John;;;', 'FN:John Doe',
+   'URL:https://linkedin.com/in/john-doe', 'URL:https://exemple.com', 'END:VCARD'].join(CRLF));
+
+equal('liens vides ignorés',
+  Payload.vcard({ firstName: 'John', lastName: 'Doe', links: ['', '   ', 'exemple.com', null] }),
+  ['BEGIN:VCARD', 'VERSION:3.0', 'N:Doe;John;;;', 'FN:John Doe',
+   'URL:https://exemple.com', 'END:VCARD'].join(CRLF));
+
+equal('lien unique accepté hors tableau',
+  Payload.vcard({ firstName: 'John', lastName: 'Doe', links: 'exemple.com' }),
+  ['BEGIN:VCARD', 'VERSION:3.0', 'N:Doe;John;;;', 'FN:John Doe',
+   'URL:https://exemple.com', 'END:VCARD'].join(CRLF));
+
+equal('aucun lien : pas de champ URL',
+  Payload.vcard({ firstName: 'John', lastName: 'Doe', links: [] }),
+  ['BEGIN:VCARD', 'VERSION:3.0', 'N:Doe;John;;;', 'FN:John Doe', 'END:VCARD'].join(CRLF));
+
+// ADR a sept composants : boîte postale;complément;rue;ville;région;code postal;pays
+equal('adresse complète',
+  Payload.vcard({ firstName: 'John', lastName: 'Doe', street: '12 rue des Fleurs',
+                  city: 'Paris', postalCode: '75001', country: 'France' }),
+  ['BEGIN:VCARD', 'VERSION:3.0', 'N:Doe;John;;;', 'FN:John Doe',
+   'ADR;TYPE=WORK:;;12 rue des Fleurs;Paris;;75001;France', 'END:VCARD'].join(CRLF));
+
+equal('adresse partielle : composants vides conservés',
+  Payload.vcard({ firstName: 'John', lastName: 'Doe', city: 'Monaco' }),
+  ['BEGIN:VCARD', 'VERSION:3.0', 'N:Doe;John;;;', 'FN:John Doe',
+   'ADR;TYPE=WORK:;;;Monaco;;;', 'END:VCARD'].join(CRLF));
+
+equal('aucune adresse : pas de champ ADR',
+  Payload.vcard({ firstName: 'John', lastName: 'Doe', street: '  ' }),
+  ['BEGIN:VCARD', 'VERSION:3.0', 'N:Doe;John;;;', 'FN:John Doe', 'END:VCARD'].join(CRLF));
+
+equal('note',
+  Payload.vcard({ firstName: 'John', lastName: 'Doe', note: 'Rencontré au salon' }),
+  ['BEGIN:VCARD', 'VERSION:3.0', 'N:Doe;John;;;', 'FN:John Doe',
+   'NOTE:Rencontré au salon', 'END:VCARD'].join(CRLF));
+
+// Une virgule dans une adresse ou une note doit être échappée comme ailleurs.
+equal('virgule échappée dans l\'adresse et la note',
+  Payload.vcard({ firstName: 'John', lastName: 'Doe', street: '12, rue des Fleurs',
+                  note: 'Bureau 3, étage 2' }),
+  ['BEGIN:VCARD', 'VERSION:3.0', 'N:Doe;John;;;', 'FN:John Doe',
+   'ADR;TYPE=WORK:;;12\\, rue des Fleurs;;;;', 'NOTE:Bureau 3\\, étage 2', 'END:VCARD'].join(CRLF));
+
+// L'ordre des champs doit rester stable : il conditionne la lisibilité du VCF.
+run++;
+{
+  const carte = Payload.vcard({
+    firstName: 'John', lastName: 'Doe', org: 'Ma société', title: 'Directeur',
+    phone: '06', workPhone: '01', email: 'a@b.com', links: ['exemple.com'],
+    street: 'Rue', city: 'Paris', postalCode: '75001', country: 'France', note: 'Note',
+  });
+  const attendu = ['BEGIN:VCARD', 'VERSION:3.0', 'N:', 'FN:', 'ORG:', 'TITLE:',
+                   'TEL;TYPE=CELL:', 'TEL;TYPE=WORK:', 'EMAIL', 'URL:', 'ADR', 'NOTE:', 'END:VCARD'];
+  const lignes = carte.split(CRLF);
+  const ordreOk = lignes.length === attendu.length &&
+                  attendu.every((prefixe, i) => lignes[i].startsWith(prefixe));
+  if (!ordreOk) {
+    failed++;
+    console.log('ÉCHEC  ordre des champs de la vCard inattendu :\n       ' + lignes.join(' | '));
+  }
+}
+
 // --- Structure du format -----------------------------------------------------
 
 run++;

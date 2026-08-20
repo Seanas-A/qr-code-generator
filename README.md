@@ -17,7 +17,7 @@ contenu (`payload.js`).
 
 ## 1. Fichier unique — `qr-code-generator.html`
 
-**C'est la version à envoyer aux gens.** Un seul fichier de 51 Ko, HTML + CSS + JS compris,
+**C'est la version à envoyer aux gens.** Un seul fichier de 59 Ko, HTML + CSS + JS compris,
 qu'on ouvre par double-clic. Il fonctionne dans un train, sur une clé USB, en pièce jointe :
 comme il n'appelle aucun CDN, il n'a rien à télécharger pour s'afficher.
 
@@ -38,9 +38,13 @@ commande.
 
 ## 2. Application complète — `index.html`
 
-Même chose, avec deux réglages regroupés sous « Options avancées », replié par défaut pour que
-l'écran d'arrivée reste simple : taille d'export et niveau de correction d'erreur (L 7 % → H
-30 %). S'ouvre aussi par double-clic ; pour la servir :
+Même chose, plus deux réglages du code sous « Options du QR code » : taille d'export et niveau de
+correction d'erreur (L 7 % → H 30 %).
+
+L'écran suit une règle simple : **ce qui décrit le contenu est en haut, ce qui règle le code est
+en bas.** Les champs essentiels sont visibles, les champs secondaires attendent sous « Plus de
+détails », et les paramètres du QR — qui ne concernent ni le contact ni le réseau — sont regroupés
+sous les boutons d'export. S'ouvre aussi par double-clic ; pour la servir :
 
 ```bash
 python3 -m http.server 8123
@@ -62,7 +66,7 @@ Quelques repères sur les quotas du plan gratuit, tous largement hors d'atteinte
 
 | Limite GitHub Pages | Valeur | Ce projet |
 | --- | --- | --- |
-| Taille du site | 1 Go | 118 Ko |
+| Taille du site | 1 Go | 138 Ko |
 | Bande passante | 100 Go/mois (souple) | 13,7 Ko par visite (compressé), soit ~7,8 millions de visites |
 | Déploiements | 10 par heure | quelques-uns par jour au plus |
 
@@ -126,6 +130,25 @@ EMAIL;TYPE=INTERNET:john.doe@exemple.com
 END:VCARD
 ```
 
+Les champs proposés sont ceux que iOS et Android savent tous lire : `N`/`FN` (nom), `ORG`,
+`TITLE` (fonction), `TEL` avec type, `EMAIL`, `URL` (autant de liens que voulu), `ADR` (adresse)
+et `NOTE`. Prénom, nom, téléphone et e-mail restent visibles ; le reste est replié sous « Plus de
+détails », pour que l'écran d'arrivée ne décourage personne.
+
+Deux choix méritent d'être explicités :
+
+- **LinkedIn passe par le champ `URL` standard**, pas par `X-SOCIALPROFILE`. Cette extension
+  affiche joliment le profil sur iPhone mais n'est pas garantie sur Android ; une URL s'ouvre
+  partout. Les liens saisis sans schéma sont normalisés, donc `linkedin.com/in/john-doe` suffit.
+- **Deux types de téléphone**, `CELL` et `WORK` : sans cette distinction, un numéro de bureau
+  s'affichait comme mobile sur le téléphone du destinataire.
+
+Pas de photo intégrée, et c'est mesuré plutôt que supposé : le plafond d'un QR code est de
+2 953 octets, le base64 gonfle l'image d'un tiers, il resterait donc environ 2 Ko — une vignette
+de 50×50 px de piètre qualité. Le code passerait de la version 9 à la version 33, soit environ
+7 cm à l'impression au lieu de 3. Le lien vers une photo hébergée (`PHOTO;VALUE=uri:`) n'est pas
+une échappatoire : iOS n'accepte que du base64 pour ce champ.
+
 Le choix de vCard plutôt que MECARD, plus compact, tient à la compatibilité : c'est le format
 que iOS et Android proposent spontanément d'ajouter au répertoire. Trois détails de mise en
 œuvre méritent l'attention :
@@ -155,6 +178,17 @@ dense qu'une URL (version 9 environ contre 3), donc à imprimer un peu plus gran
   `wifi-Wifi-Invites.svg`, `contact-John-Doe.png`, `qr-texte.png`.
 - Marge blanche de 4 modules incluse dans les exports, comme l'exige la spécification.
 - Thèmes clair et sombre suivant le réglage du système.
+
+## Impression
+
+Le bouton « Imprimer » produit une affichette prête à poser : le QR code centré sur la feuille,
+et sous lui une légende adaptée au contenu — le nom, la fonction et l'organisation pour une fiche
+contact, le nom du réseau et **sa clé en clair** pour un Wi-Fi, l'adresse pour un lien. La clé
+écrite en toutes lettres n'est pas un oubli : il y a toujours quelqu'un dont le téléphone ne
+scanne pas, ou un ordinateur portable à connecter.
+
+Tout le reste — en-tête, formulaires, onglets, boutons — disparaît via `@media print`. Aucune
+fenêtre intermédiaire, aucune mise en page à refaire dans un traitement de texte.
 
 ## Habillage
 

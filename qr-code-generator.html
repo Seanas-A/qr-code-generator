@@ -85,7 +85,7 @@
 
   label { display: block; margin-bottom: .4rem; font-size: .75rem; font-weight: 600;
           text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
-  input[type="text"], select, textarea {
+  input[type="text"], input[data-link], select, textarea {
     width: 100%;
     padding: .75rem .8rem;
     border: 1px solid var(--border);
@@ -146,9 +146,47 @@
   footer .icon { color: var(--accent); }
   [hidden] { display: none !important; }
 
+  /* Section « Plus de détails » : les champs secondaires, repliés par défaut. */
+  .more > summary {
+    cursor: pointer; width: fit-content; font-size: .75rem; font-weight: 600;
+    text-transform: uppercase; letter-spacing: .06em; color: var(--muted);
+    list-style: none; transition: color .15s ease;
+  }
+  .more > summary:hover { color: var(--text); }
+  .more > summary::-webkit-details-marker { display: none; }
+  .more > summary::before { content: "▸ "; }
+  .more[open] > summary::before { content: "▾ "; }
+  .more > summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  /* Comme les tabpanels : l'espacement vient du conteneur, jamais des champs. */
+  .more__body { display: grid; gap: .9rem; align-content: start; margin-top: .9rem; }
+  .links, .links__list { display: grid; gap: .5rem; }
+  .act.ghost {
+    justify-content: center; width: fit-content; padding: .4rem .7rem;
+    font-size: .82rem; color: var(--accent); background: none; border-style: dashed;
+  }
+  /* Légende de la feuille imprimée : inutile à l'écran. */
+  .print-caption { display: none; }
+
   /* Respecte le réglage système « réduire les animations ». */
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; }
+  }
+
+  /* À l'impression, seul le code et sa légende comptent. */
+  @media print {
+    body { padding: 0; background: #fff; color: #000; }
+    h1, .brand, .sub, .tabs, [role="tabpanel"], .status, .notice, .actions, footer {
+      display: none !important;
+    }
+    .card { border: none; box-shadow: none; padding: 0; background: none;
+            display: flex; flex-direction: column; align-items: center;
+            justify-content: center; min-height: 90vh; }
+    .preview { border: none; background: none; padding: 0; margin: 0; min-height: 0; }
+    canvas { max-width: 11cm; padding: 0; box-shadow: none; }
+    .print-caption {
+      display: block; margin: .8cm 0 0; text-align: center; font-size: 12pt;
+      line-height: 1.5; color: #000; white-space: pre-line;
+    }
   }
 </style>
 </head>
@@ -214,6 +252,18 @@
     <path d="M8 1.7 13 3.4v4.2c0 3.3-2.1 6-5 6.9-2.9-.9-5-3.6-5-6.9V3.4z"/>
     <path d="M5.9 8.1 7.4 9.6l2.9-3"/>
   </symbol>
+
+  <symbol id="icon-plus" viewBox="0 0 16 16" fill="none" stroke="currentColor"
+          stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M8 3.4v9.2M3.4 8h9.2"/>
+  </symbol>
+
+  <symbol id="icon-print" viewBox="0 0 16 16" fill="none" stroke="currentColor"
+          stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M4.7 5.2V2.6h6.6v2.6"/>
+    <path d="M11.3 11.6h1.1a1.4 1.4 0 0 0 1.4-1.4V6.6a1.4 1.4 0 0 0-1.4-1.4H3.6A1.4 1.4 0 0 0 2.2 6.6v3.6a1.4 1.4 0 0 0 1.4 1.4h1.1"/>
+    <rect x="4.7" y="9.6" width="6.6" height="3.8" rx=".7"/>
+  </symbol>
 </svg>
 
 <main>
@@ -234,14 +284,14 @@
     <div id="pane-url" role="tabpanel" aria-labelledby="tab-url">
       <div class="field">
         <label for="url">Adresse du site</label>
-        <input id="url" type="text" placeholder="https://exemple.com/ma-page" autocomplete="off" spellcheck="false">
+        <input id="url" type="text" autocomplete="off" spellcheck="false">
       </div>
     </div>
 
     <div id="pane-wifi" role="tabpanel" aria-labelledby="tab-wifi" hidden>
       <div class="field">
         <label for="ssid">Nom du réseau (SSID)</label>
-        <input id="ssid" type="text" placeholder="Wifi-Invites" autocomplete="off" spellcheck="false">
+        <input id="ssid" type="text" autocomplete="off" spellcheck="false">
       </div>
       <div class="row">
         <div class="field">
@@ -254,19 +304,24 @@
         </div>
         <div class="field">
           <label for="wifi-password">Mot de passe</label>
-          <input id="wifi-password" type="text" placeholder="clé du réseau" autocomplete="off" spellcheck="false">
+          <input id="wifi-password" type="text" autocomplete="off" spellcheck="false">
         </div>
       </div>
-      <div class="check">
-        <input id="hidden-network" type="checkbox">
-        <label for="hidden-network">Réseau caché (SSID non diffusé)</label>
-      </div>
+      <details class="more">
+        <summary>Plus de détails</summary>
+        <div class="more__body">
+          <div class="check">
+            <input id="hidden-network" type="checkbox">
+            <label for="hidden-network">Réseau caché (SSID non diffusé)</label>
+          </div>
+        </div>
+      </details>
     </div>
 
     <div id="pane-text" role="tabpanel" aria-labelledby="tab-text" hidden>
       <div class="field">
         <label for="free-text">Texte</label>
-        <textarea id="free-text" rows="4" placeholder="N'importe quel texte : un message, une référence, un numéro de série…" spellcheck="false"></textarea>
+        <textarea id="free-text" rows="4" spellcheck="false"></textarea>
       </div>
     </div>
 
@@ -274,27 +329,73 @@
       <div class="row">
         <div class="field">
           <label for="contact-first">Prénom</label>
-          <input id="contact-first" type="text" placeholder="John" autocomplete="off">
+          <input id="contact-first" type="text" autocomplete="off">
         </div>
         <div class="field">
           <label for="contact-last">Nom</label>
-          <input id="contact-last" type="text" placeholder="Doe" autocomplete="off">
+          <input id="contact-last" type="text" autocomplete="off">
         </div>
-      </div>
-      <div class="field">
-        <label for="contact-org">Organisation <span class="optional">facultatif</span></label>
-        <input id="contact-org" type="text" placeholder="Ma société" autocomplete="off">
       </div>
       <div class="row">
         <div class="field">
           <label for="contact-phone">Téléphone</label>
-          <input id="contact-phone" type="text" placeholder="+33 6 12 34 56 78" autocomplete="off" spellcheck="false">
+          <input id="contact-phone" type="text" autocomplete="off" spellcheck="false">
         </div>
         <div class="field">
           <label for="contact-email">E-mail</label>
-          <input id="contact-email" type="text" placeholder="john.doe@exemple.com" autocomplete="off" spellcheck="false">
+          <input id="contact-email" type="text" autocomplete="off" spellcheck="false">
         </div>
       </div>
+      <details class="more">
+        <summary>Plus de détails</summary>
+        <div class="more__body">
+          <div class="row">
+            <div class="field">
+              <label for="contact-org">Organisation</label>
+              <input id="contact-org" type="text" autocomplete="off">
+            </div>
+            <div class="field">
+              <label for="contact-title">Fonction</label>
+              <input id="contact-title" type="text" autocomplete="off">
+            </div>
+          </div>
+          <div class="field">
+            <label for="contact-work-phone">Téléphone (bureau)</label>
+            <input id="contact-work-phone" type="text" autocomplete="off" spellcheck="false">
+          </div>
+          <div class="links">
+            <label>Liens <span class="optional">site web, LinkedIn…</span></label>
+            <div class="links__list" id="links-list">
+              <input type="text" data-link autocomplete="off" spellcheck="false">
+            </div>
+            <button type="button" class="act ghost" id="add-link"><svg class="icon" aria-hidden="true"><use href="#icon-plus"/></svg><span>Ajouter un lien</span></button>
+          </div>
+          <div class="row">
+            <div class="field">
+              <label for="contact-street">Rue</label>
+              <input id="contact-street" type="text" autocomplete="off">
+            </div>
+            <div class="field">
+              <label for="contact-postal">Code postal</label>
+              <input id="contact-postal" type="text" autocomplete="off">
+            </div>
+          </div>
+          <div class="row">
+            <div class="field">
+              <label for="contact-city">Ville</label>
+              <input id="contact-city" type="text" autocomplete="off">
+            </div>
+            <div class="field">
+              <label for="contact-country">Pays</label>
+              <input id="contact-country" type="text" autocomplete="off">
+            </div>
+          </div>
+          <div class="field">
+            <label for="contact-note">Note</label>
+            <textarea id="contact-note" rows="2" spellcheck="false"></textarea>
+          </div>
+        </div>
+      </details>
     </div>
 
     <div class="preview" id="preview">
@@ -302,6 +403,7 @@
       <p class="hint" id="hint">Le QR code apparaîtra ici.</p>
     </div>
 
+    <p class="print-caption" id="print-caption"></p>
     <p class="status" id="status" aria-live="polite"></p>
     <p class="notice" id="notice" hidden></p>
 
@@ -309,6 +411,7 @@
       <button id="png" class="act primary" type="button" disabled><svg class="icon" aria-hidden="true"><use href="#icon-download"/></svg><span>Télécharger le PNG</span></button>
       <button id="svg" class="act" type="button" disabled><svg class="icon" aria-hidden="true"><use href="#icon-download"/></svg><span>Télécharger le SVG</span></button>
       <button id="copy" class="act" type="button" disabled><svg class="icon" aria-hidden="true"><use href="#icon-clipboard"/></svg><span>Copier l'image</span></button>
+      <button id="print" class="act" type="button" disabled><svg class="icon" aria-hidden="true"><use href="#icon-print"/></svg><span>Imprimer</span></button>
     </div>
   </div>
 
@@ -862,7 +965,8 @@
  *   Payload.wifi({ ssid, security, password, hidden }) -> 'WIFI:T:WPA;S:...;P:...;;'
  *   Payload.wifiWarnings({ ... })             -> [messages] (problèmes probables côté téléphone)
  *   Payload.text(texte)                       -> le texte inchangé
- *   Payload.vcard({ firstName, lastName, org, phone, email }) -> 'BEGIN:VCARD...'
+ *   Payload.vcard({ firstName, lastName, org, title, phone, workPhone, email,
+ *                  links, street, postalCode, city, country, note }) -> 'BEGIN:VCARD...'
  *   Payload.vcardWarnings({ ... })            -> [messages]
  */
 (function (global) {
@@ -979,12 +1083,22 @@
   function vcardFields(options) {
     const opts = options || {};
     const get = (key) => String(opts[key] == null ? '' : opts[key]).trim();
+    // Les liens arrivent en liste : les entrées vides sont ignorées.
+    const links = Array.isArray(opts.links) ? opts.links : (opts.links ? [opts.links] : []);
     return {
       firstName: get('firstName'),
       lastName: get('lastName'),
       org: get('org'),
+      title: get('title'),
       phone: get('phone'),
+      workPhone: get('workPhone'),
       email: get('email'),
+      links: links.map((l) => String(l == null ? '' : l).trim()).filter(Boolean),
+      street: get('street'),
+      postalCode: get('postalCode'),
+      city: get('city'),
+      country: get('country'),
+      note: get('note'),
     };
   }
 
@@ -1002,8 +1116,23 @@
     lines.push('N:' + escapeVCard(f.lastName) + ';' + escapeVCard(f.firstName) + ';;;');
     lines.push('FN:' + escapeVCard(fullName));
     if (f.org !== '') lines.push('ORG:' + escapeVCard(f.org));
+    if (f.title !== '') lines.push('TITLE:' + escapeVCard(f.title));
+    // CELL et WORK évitent qu'un numéro de bureau s'affiche comme mobile.
     if (f.phone !== '') lines.push('TEL;TYPE=CELL:' + escapeVCard(f.phone));
+    if (f.workPhone !== '') lines.push('TEL;TYPE=WORK:' + escapeVCard(f.workPhone));
     if (f.email !== '') lines.push('EMAIL;TYPE=INTERNET:' + escapeVCard(f.email));
+    // Un profil LinkedIn est une URL comme une autre : le champ standard passe
+    // partout, là où l'extension X-SOCIALPROFILE n'est lue que par iOS.
+    for (const link of f.links) {
+      lines.push('URL:' + escapeVCard(url(link)));
+    }
+    // ADR compte sept composants : boîte postale, complément, rue, ville,
+    // région, code postal, pays. Les inutilisés restent vides mais présents.
+    if (f.street || f.city || f.postalCode || f.country) {
+      lines.push('ADR;TYPE=WORK:;;' + escapeVCard(f.street) + ';' + escapeVCard(f.city) +
+                 ';;' + escapeVCard(f.postalCode) + ';' + escapeVCard(f.country));
+    }
+    if (f.note !== '') lines.push('NOTE:' + escapeVCard(f.note));
     lines.push('END:VCARD');
 
     // La spécification impose CRLF comme séparateur de lignes.
@@ -1062,10 +1191,21 @@
   var contact = {
     firstName: document.getElementById('contact-first'),
     lastName: document.getElementById('contact-last'),
-    org: document.getElementById('contact-org'),
     phone: document.getElementById('contact-phone'),
     email: document.getElementById('contact-email'),
+    org: document.getElementById('contact-org'),
+    title: document.getElementById('contact-title'),
+    workPhone: document.getElementById('contact-work-phone'),
+    street: document.getElementById('contact-street'),
+    postalCode: document.getElementById('contact-postal'),
+    city: document.getElementById('contact-city'),
+    country: document.getElementById('contact-country'),
+    note: document.getElementById('contact-note'),
   };
+  var linksList = document.getElementById('links-list');
+  var addLinkBtn = document.getElementById('add-link');
+  var printBtn = document.getElementById('print');
+  var printCaption = document.getElementById('print-caption');
 
   var canvas = document.getElementById('canvas');
   var preview = document.getElementById('preview');
@@ -1148,7 +1288,13 @@
   function setEnabled(on) {
     pngBtn.disabled = !on;
     svgBtn.disabled = !on;
+    printBtn.disabled = !on;
     copyBtn.disabled = !on || !window.ClipboardItem;
+  }
+
+  // Champs de lien présents, y compris ceux ajoutés en cours de saisie.
+  function linkInputs() {
+    return Array.prototype.slice.call(linksList.querySelectorAll('input[data-link]'));
   }
 
   function clear(message) {
@@ -1181,7 +1327,12 @@
         notes.push('Ce code contient la clé du réseau : qui le scanne obtient l’accès.');
       }
       if (warnings.length) notes.unshift('À vérifier : ' + warnings.join(', ') + '.');
-      return { text: text, describe: describe, notice: notes.join(' ') };
+      // Sur l'affichette, la clé en clair sert à ceux qui ne peuvent pas scanner.
+      var caption = ['Wi-Fi : ' + ssidInput.value.trim()];
+      if (options.security !== 'nopass' && options.password !== '') {
+        caption.push('Mot de passe : ' + options.password);
+      }
+      return { text: text, describe: describe, caption: caption.join('\n'), notice: notes.join(' ') };
     }
     if (mode === 'text') {
       var raw = Payload.text(freeText.value);
@@ -1190,18 +1341,15 @@
       return {
         text: raw,
         describe: oneLine.length > 40 ? oneLine.slice(0, 39) + '…' : oneLine,
+        caption: raw,
         notice: '',
       };
     }
 
     if (mode === 'contact') {
-      var fields = {
-        firstName: contact.firstName.value,
-        lastName: contact.lastName.value,
-        org: contact.org.value,
-        phone: contact.phone.value,
-        email: contact.email.value,
-      };
+      var fields = {};
+      Object.keys(contact).forEach(function (key) { fields[key] = contact[key].value; });
+      fields.links = linkInputs().map(function (input) { return input.value; });
       var card = Payload.vcard(fields);
       if (card === '') return { text: '', empty: 'Saisissez au moins un prénom ou un nom.' };
       var who = [fields.firstName.trim(), fields.lastName.trim()].filter(Boolean).join(' ');
@@ -1209,13 +1357,19 @@
       return {
         text: card,
         describe: 'Fiche contact · ' + who,
+        caption: [who, fields.title.trim(), fields.org.trim()].filter(Boolean).join('\n'),
         notice: cardWarnings.length ? 'À vérifier : ' + cardWarnings.join(', ') + '.' : '',
       };
     }
 
     var url = Payload.url(urlInput.value);
     if (url === '') return { text: '', empty: 'Collez une adresse pour voir le QR code.' };
-    return { text: url, describe: url.length > 46 ? url.slice(0, 45) + '…' : url, notice: '' };
+    return {
+      text: url,
+      describe: url.length > 46 ? url.slice(0, 45) + '…' : url,
+      caption: url,
+      notice: '',
+    };
   }
 
   function generate() {
@@ -1240,6 +1394,7 @@
     setStatus(payload.describe + ' · version ' + qr.version + ' · ' + qr.size + '×' + qr.size +
               ' modules · image ' + px + '×' + px + ' px');
     setNotice(payload.notice);
+    printCaption.textContent = payload.caption || '';
   }
 
   function selectMode(next) {
@@ -1283,13 +1438,34 @@
     tabs[mode].focus();
   });
 
-  [urlInput, ssidInput, passwordInput, freeText, contact.firstName, contact.lastName,
-   contact.org, contact.phone, contact.email].forEach(function (el) {
+  var textAreas = [freeText, contact.note];
+
+  function watch(el) {
     el.addEventListener('input', schedule);
     el.addEventListener('keydown', function (e) {
-      // Dans la zone de texte, Entrée sert à passer à la ligne.
-      if (e.key === 'Enter' && el !== freeText) { clearTimeout(timer); generate(); }
+      // Dans une zone de texte, Entrée sert à passer à la ligne.
+      if (e.key === 'Enter' && textAreas.indexOf(el) === -1) { clearTimeout(timer); generate(); }
     });
+  }
+
+  [urlInput, ssidInput, passwordInput, freeText]
+    .concat(Object.keys(contact).map(function (k) { return contact[k]; }))
+    .concat(linkInputs())
+    .forEach(watch);
+
+  addLinkBtn.addEventListener('click', function () {
+    var input = document.createElement('input');
+    input.type = 'text';
+    input.setAttribute('data-link', '');
+    input.autocomplete = 'off';
+    input.spellcheck = false;
+    linksList.appendChild(input);
+    watch(input);
+    input.focus();
+  });
+
+  printBtn.addEventListener('click', function () {
+    if (current) window.print();
   });
   hiddenCheck.addEventListener('change', generate);
   securitySelect.addEventListener('change', function () {

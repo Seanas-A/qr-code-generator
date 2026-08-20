@@ -380,41 +380,6 @@ input[type="range"].option__control {
   color: var(--accent);
 }
 
-/* Réglages repliés par défaut : l'écran reste simple à l'arrivée. */
-.advanced {
-  margin-top: 1.25rem;
-  padding-top: 1.1rem;
-  border-top: 1px solid var(--border);
-}
-
-.advanced > summary {
-  cursor: pointer;
-  width: fit-content;
-  font-size: 0.8rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--text-muted);
-  list-style: none;
-}
-
-.advanced > summary::-webkit-details-marker {
-  display: none;
-}
-
-.advanced > summary::before {
-  content: "▸ ";
-}
-
-.advanced[open] > summary::before {
-  content: "▾ ";
-}
-
-.advanced > summary:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-}
-
 .advanced__help {
   margin: 0.7rem 0 0;
   font-size: 0.82rem;
@@ -440,5 +405,138 @@ textarea.field__input {
   *::after {
     transition-duration: 0.01ms !important;
     animation-duration: 0.01ms !important;
+  }
+}
+
+/* Section « Plus de détails » : les champs secondaires, repliés par défaut. */
+.more > summary,
+.advanced > summary {
+  cursor: pointer;
+  width: fit-content;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  list-style: none;
+  transition: color 0.15s ease;
+}
+
+.more > summary:hover,
+.advanced > summary:hover {
+  color: var(--text);
+}
+
+.more > summary::-webkit-details-marker,
+.advanced > summary::-webkit-details-marker {
+  display: none;
+}
+
+.more > summary::before,
+.advanced > summary::before {
+  content: "▸ ";
+}
+
+.more[open] > summary::before,
+.advanced[open] > summary::before {
+  content: "▾ ";
+}
+
+.more > summary:focus-visible,
+.advanced > summary:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Comme les tabpanels : l'espacement vient du conteneur, jamais des champs. */
+.more__body {
+  display: grid;
+  gap: 1rem;
+  align-content: start;
+  margin-top: 0.9rem;
+}
+
+.links {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.links__list {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.button--ghost {
+  justify-content: center;
+  width: fit-content;
+  padding: 0.4rem 0.7rem;
+  font-size: 0.82rem;
+  color: var(--accent);
+  background: none;
+  border-style: dashed;
+}
+
+/* Légende de la feuille imprimée : inutile à l'écran. */
+.print-caption {
+  display: none;
+}
+
+/* Réglages du QR code : séparés des champs, puisqu'ils n'en font pas partie. */
+.advanced {
+  width: 100%;
+  margin-top: 0.25rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+}
+
+/* À l'impression, seul le code et sa légende comptent. */
+@media print {
+  body {
+    padding: 0;
+    background: #fff;
+    color: #000;
+  }
+
+  .app__header,
+  .panel,
+  .status,
+  .notice,
+  .actions,
+  .advanced,
+  .app__footer {
+    display: none !important;
+  }
+
+  .result {
+    border: none;
+    box-shadow: none;
+    padding: 0;
+    background: none;
+    /* Le code se retrouve au milieu de la feuille, prêt à être affiché. */
+    justify-content: center;
+    min-height: 90vh;
+  }
+
+  .preview {
+    border: none;
+    background: none;
+    padding: 0;
+    min-height: 0;
+  }
+
+  .preview__canvas {
+    max-width: 11cm;
+    padding: 0;
+    box-shadow: none;
+  }
+
+  .print-caption {
+    display: block;
+    margin: 0.8cm 0 0;
+    text-align: center;
+    font-size: 12pt;
+    line-height: 1.5;
+    color: #000;
+    white-space: pre-line;
   }
 }

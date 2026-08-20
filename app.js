@@ -24,10 +24,21 @@
   const contact = {
     firstName: document.getElementById('contact-first'),
     lastName: document.getElementById('contact-last'),
-    org: document.getElementById('contact-org'),
     phone: document.getElementById('contact-phone'),
     email: document.getElementById('contact-email'),
+    org: document.getElementById('contact-org'),
+    title: document.getElementById('contact-title'),
+    workPhone: document.getElementById('contact-work-phone'),
+    street: document.getElementById('contact-street'),
+    postalCode: document.getElementById('contact-postal'),
+    city: document.getElementById('contact-city'),
+    country: document.getElementById('contact-country'),
+    note: document.getElementById('contact-note'),
   };
+  const linksList = document.getElementById('links-list');
+  const addLinkBtn = document.getElementById('add-link');
+  const printBtn = document.getElementById('print');
+  const printCaption = document.getElementById('print-caption');
 
   const eccSelect = document.getElementById('ecc-select');
   const sizeRange = document.getElementById('size-range');
@@ -129,7 +140,13 @@
   function setExportsEnabled(enabled) {
     downloadPngBtn.disabled = !enabled;
     downloadSvgBtn.disabled = !enabled;
+    printBtn.disabled = !enabled;
     copyPngBtn.disabled = !enabled || !window.ClipboardItem;
+  }
+
+  // Champs de lien présents, y compris ceux ajoutés en cours de saisie.
+  function linkInputs() {
+    return Array.prototype.slice.call(linksList.querySelectorAll('input[data-link]'));
   }
 
   function clearResult(hint, message, isError) {
@@ -163,7 +180,12 @@
         notes.push('Ce code contient la clé du réseau : qui le scanne obtient l’accès.');
       }
       if (warnings.length) notes.unshift('À vérifier : ' + warnings.join(', ') + '.');
-      return { text: text, describe: describe, notice: notes.join(' ') };
+      // Sur l'affichette, la clé en clair sert à ceux qui ne peuvent pas scanner.
+      const caption = ['Wi-Fi : ' + ssidInput.value.trim()];
+      if (options.security !== 'nopass' && options.password !== '') {
+        caption.push('Mot de passe : ' + options.password);
+      }
+      return { text: text, describe: describe, caption: caption.join('\n'), notice: notes.join(' ') };
     }
 
     if (mode === 'text') {
@@ -173,18 +195,17 @@
       return {
         text: raw,
         describe: oneLine.length > 40 ? oneLine.slice(0, 39) + '…' : oneLine,
+        caption: raw,
         notice: '',
       };
     }
 
     if (mode === 'contact') {
-      const fields = {
-        firstName: contact.firstName.value,
-        lastName: contact.lastName.value,
-        org: contact.org.value,
-        phone: contact.phone.value,
-        email: contact.email.value,
-      };
+      const fields = {};
+      Object.keys(contact).forEach(function (key) {
+        fields[key] = contact[key].value;
+      });
+      fields.links = linkInputs().map(function (input) { return input.value; });
       const card = window.Payload.vcard(fields);
       if (card === '') return { text: '', empty: 'Saisissez au moins un prénom ou un nom.' };
       const who = [fields.firstName.trim(), fields.lastName.trim()].filter(Boolean).join(' ');
@@ -192,13 +213,19 @@
       return {
         text: card,
         describe: 'Fiche contact · ' + who,
+        caption: [who, fields.title.trim(), fields.org.trim()].filter(Boolean).join('\n'),
         notice: cardWarnings.length ? 'À vérifier : ' + cardWarnings.join(', ') + '.' : '',
       };
     }
 
     const url = window.Payload.url(urlInput.value);
     if (url === '') return { text: '', empty: 'Collez une adresse pour voir le QR code.' };
-    return { text: url, describe: url.length > 46 ? url.slice(0, 45) + '…' : url, notice: '' };
+    return {
+      text: url,
+      describe: url.length > 46 ? url.slice(0, 45) + '…' : url,
+      caption: url,
+      notice: '',
+    };
   }
 
   function generate() {
@@ -229,6 +256,7 @@
       'PNG ' + pixels + '×' + pixels + ' px'
     );
     setNotice(payload.notice);
+    printCaption.textContent = payload.caption || '';
   }
 
   function selectMode(next) {
@@ -274,16 +302,38 @@
     tabs[mode].focus();
   });
 
-  [urlInput, ssidInput, passwordInput, freeText, contact.firstName, contact.lastName,
-   contact.org, contact.phone, contact.email].forEach(function (el) {
+  const textAreas = [freeText, contact.note];
+
+  function watch(el) {
     el.addEventListener('input', scheduleGenerate);
     el.addEventListener('keydown', function (event) {
-      // Dans la zone de texte, Entrée sert à passer à la ligne.
-      if (event.key === 'Enter' && el !== freeText) {
+      // Dans une zone de texte, Entrée sert à passer à la ligne.
+      if (event.key === 'Enter' && textAreas.indexOf(el) === -1) {
         clearTimeout(debounceTimer);
         generate();
       }
     });
+  }
+
+  [urlInput, ssidInput, passwordInput, freeText]
+    .concat(Object.keys(contact).map(function (k) { return contact[k]; }))
+    .concat(linkInputs())
+    .forEach(watch);
+
+  addLinkBtn.addEventListener('click', function () {
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.className = 'field__input';
+    input.setAttribute('data-link', '');
+    input.autocomplete = 'off';
+    input.spellcheck = false;
+    linksList.appendChild(input);
+    watch(input);
+    input.focus();
+  });
+
+  printBtn.addEventListener('click', function () {
+    if (current) window.print();
   });
 
   hiddenCheck.addEventListener('change', generate);

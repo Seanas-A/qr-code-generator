@@ -15,7 +15,8 @@
  *   Payload.wifi({ ssid, security, password, hidden }) -> 'WIFI:T:WPA;S:...;P:...;;'
  *   Payload.wifiWarnings({ ... })             -> [messages] (problèmes probables côté téléphone)
  *   Payload.text(texte)                       -> le texte inchangé
- *   Payload.vcard({ firstName, lastName, org, phone, email }) -> 'BEGIN:VCARD...'
+ *   Payload.vcard({ firstName, lastName, org, title, phone, workPhone, email,
+ *                  links, street, postalCode, city, country, note }) -> 'BEGIN:VCARD...'
  *   Payload.vcardWarnings({ ... })            -> [messages]
  */
 (function (global) {
@@ -132,12 +133,22 @@
   function vcardFields(options) {
     const opts = options || {};
     const get = (key) => String(opts[key] == null ? '' : opts[key]).trim();
+    // Les liens arrivent en liste : les entrées vides sont ignorées.
+    const links = Array.isArray(opts.links) ? opts.links : (opts.links ? [opts.links] : []);
     return {
       firstName: get('firstName'),
       lastName: get('lastName'),
       org: get('org'),
+      title: get('title'),
       phone: get('phone'),
+      workPhone: get('workPhone'),
       email: get('email'),
+      links: links.map((l) => String(l == null ? '' : l).trim()).filter(Boolean),
+      street: get('street'),
+      postalCode: get('postalCode'),
+      city: get('city'),
+      country: get('country'),
+      note: get('note'),
     };
   }
 
@@ -155,8 +166,23 @@
     lines.push('N:' + escapeVCard(f.lastName) + ';' + escapeVCard(f.firstName) + ';;;');
     lines.push('FN:' + escapeVCard(fullName));
     if (f.org !== '') lines.push('ORG:' + escapeVCard(f.org));
+    if (f.title !== '') lines.push('TITLE:' + escapeVCard(f.title));
+    // CELL et WORK évitent qu'un numéro de bureau s'affiche comme mobile.
     if (f.phone !== '') lines.push('TEL;TYPE=CELL:' + escapeVCard(f.phone));
+    if (f.workPhone !== '') lines.push('TEL;TYPE=WORK:' + escapeVCard(f.workPhone));
     if (f.email !== '') lines.push('EMAIL;TYPE=INTERNET:' + escapeVCard(f.email));
+    // Un profil LinkedIn est une URL comme une autre : le champ standard passe
+    // partout, là où l'extension X-SOCIALPROFILE n'est lue que par iOS.
+    for (const link of f.links) {
+      lines.push('URL:' + escapeVCard(url(link)));
+    }
+    // ADR compte sept composants : boîte postale, complément, rue, ville,
+    // région, code postal, pays. Les inutilisés restent vides mais présents.
+    if (f.street || f.city || f.postalCode || f.country) {
+      lines.push('ADR;TYPE=WORK:;;' + escapeVCard(f.street) + ';' + escapeVCard(f.city) +
+                 ';;' + escapeVCard(f.postalCode) + ';' + escapeVCard(f.country));
+    }
+    if (f.note !== '') lines.push('NOTE:' + escapeVCard(f.note));
     lines.push('END:VCARD');
 
     // La spécification impose CRLF comme séparateur de lignes.
