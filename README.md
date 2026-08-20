@@ -176,6 +176,14 @@ plus marquée au prix d'environ 80 Ko dans le fichier unique — arbitrage écar
 
 Le favicon est un SVG en `data:` URI, donc lui aussi disponible hors ligne.
 
+**Un invariant de mise en page** mérite d'être connu avant de toucher aux formulaires :
+l'espacement vertical entre champs appartient au conteneur, via `gap`, et jamais aux champs
+eux-mêmes. Une marge posée sur un champ s'applique aussi lorsque deux champs sont placés côte à
+côte dans une grille : le second descend et la paire se désaligne. C'est précisément ce que
+faisait `.field + .field { margin-top }`, qui décalait de 14 px les paires « Prénom / Nom »,
+« Téléphone / E-mail » et « Sécurité / Mot de passe » dans le fichier autonome.
+`tests/layout.js` vérifie cet invariant et refuse toute marge sur un champ.
+
 ## Structure
 
 | Fichier | Rôle |
@@ -187,12 +195,13 @@ Le favicon est un SVG en `data:` URI, donc lui aussi disponible hors ligne.
 | `payload.js` | Contenu encodé : URLs, format Wi-Fi, texte brut, vCard, échappement |
 | `index.html`, `styles.css`, `app.js` | Application complète, avec réglages |
 | `tests/decode-roundtrip.js` | Tests de l'encodeur QR |
-| `tests/payload.js` | Tests des URLs et du format Wi-Fi |
+| `tests/payload.js` | Tests des URLs, du Wi-Fi, du texte et de la vCard |
+| `tests/layout.js` | Vérifie l'invariant d'espacement des formulaires |
 
 ## Tests
 
 ```bash
-node tests/decode-roundtrip.js && node tests/payload.js
+node tests/decode-roundtrip.js && node tests/payload.js && node tests/layout.js
 ```
 
 Le test relit chaque matrice produite comme le ferait un lecteur — démasquage, lecture en
