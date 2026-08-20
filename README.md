@@ -1,10 +1,13 @@
 # Générateur de QR code
 
-Deux modes, un QR code téléchargeable en PNG ou SVG :
+Quatre modes, un QR code téléchargeable en PNG ou SVG :
 
 - **Site web** — un lien à partager ou à imprimer.
 - **Réseau Wi-Fi** — le téléphone lit le réseau et la clé, puis se connecte seul. Plus besoin
   de dicter le mot de passe aux invités.
+- **Texte** — n'importe quel contenu, encodé tel quel : référence, message, numéro de série.
+- **Contact** — une fiche vCard que le téléphone propose d'ajouter au répertoire, pratique
+  pour un badge ou une signature.
 
 Tout est calculé dans le navigateur : aucune requête réseau, aucune dépendance, aucun CDN.
 L'encodeur QR (ISO/IEC 18004) est écrit à la main dans `qrcode.js`.
@@ -14,11 +17,11 @@ contenu (`payload.js`).
 
 ## 1. Fichier unique — `qr-code-generator.html`
 
-**C'est la version à envoyer aux gens.** Un seul fichier de 38 Ko, HTML + CSS + JS compris,
+**C'est la version à envoyer aux gens.** Un seul fichier de 45 Ko, HTML + CSS + JS compris,
 qu'on ouvre par double-clic. Il fonctionne dans un train, sur une clé USB, en pièce jointe :
 comme il n'appelle aucun CDN, il n'a rien à télécharger pour s'afficher.
 
-Interface volontairement réduite : deux onglets, les champs utiles, trois boutons. La correction
+Interface volontairement réduite : quatre onglets, les champs utiles, trois boutons. La correction
 d'erreur est fixée à M (15 %) et l'image exportée fait environ 1 000 px, ce qui convient à
 l'impression.
 
@@ -58,7 +61,7 @@ Quelques repères sur les quotas du plan gratuit, tous largement hors d'atteinte
 
 | Limite GitHub Pages | Valeur | Ce projet |
 | --- | --- | --- |
-| Taille du site | 1 Go | 156 Ko |
+| Taille du site | 1 Go | 106 Ko |
 | Bande passante | 100 Go/mois (souple) | 13,7 Ko par visite (compressé), soit ~7,8 millions de visites |
 | Déploiements | 10 par heure | quelques-uns par jour au plus |
 
@@ -107,6 +110,38 @@ Un rappel affiché sous le code : **il contient la clé en clair**. C'est tout l
 procédé, mais un QR Wi-Fi affiché en vitrine ou publié sur une photo donne l'accès au réseau à
 qui le scanne — pensez à un réseau invités séparé si l'affichage est public.
 
+## La fiche contact
+
+Le contenu encodé est une vCard 3.0 :
+
+```
+BEGIN:VCARD
+VERSION:3.0
+N:Martin;Alex;;;
+FN:Alex Martin
+ORG:AS Monaco
+TEL;TYPE=CELL:+377 12 34 56 78
+EMAIL;TYPE=INTERNET:alex@exemple.com
+END:VCARD
+```
+
+Le choix de vCard plutôt que MECARD, plus compact, tient à la compatibilité : c'est le format
+que iOS et Android proposent spontanément d'ajouter au répertoire. Trois détails de mise en
+œuvre méritent l'attention :
+
+- **Échappement propre à vCard.** La virgule et le point-virgule séparent les valeurs et les
+  composants d'un champ : sans échappement, un nom composé comme `Martin;Dupont` serait lu
+  comme deux composants distincts du champ `N`. Un retour à la ligne saisi dans un champ
+  devient la séquence littérale `\n`, sinon la structure ligne par ligne est cassée.
+- **`N` et `FN` sont tous deux obligatoires** en vCard 3.0 : le premier est structuré
+  (Nom;Prénom;Autres;Préfixe;Suffixe), le second est le nom affiché.
+- **Séparateur CRLF**, comme l'impose la spécification — un test vérifie qu'aucun saut de
+  ligne isolé ne se glisse dans la fiche.
+
+Un prénom ou un nom suffit à générer la fiche ; l'interface signale l'absence de téléphone et
+d'e-mail, ainsi qu'une adresse sans arobase. À noter : une fiche complète produit un code plus
+dense qu'une URL (version 9 environ contre 3), donc à imprimer un peu plus grand.
+
 ## Fonctionnement
 
 - Normalisation de l'URL : `exemple.com` devient `https://exemple.com`, pour que le QR pointe
@@ -115,8 +150,8 @@ qui le scanne — pensez à un réseau invités séparé si l'affichage est publ
   taille obtenue est donc le multiple immédiatement inférieur à la taille demandée, et c'est la
   taille réelle qui est affichée sous l'aperçu.
 - Export PNG (matriciel) et SVG (vectoriel, net à n'importe quelle taille), plus copie dans le
-  presse-papiers. Le nom du fichier reprend le domaine ou le réseau : `qr-asmonaco.com.png`,
-  `wifi-Livebox-A1B2.svg`.
+  presse-papiers. Le nom du fichier décrit son contenu : `qr-asmonaco.com.png`,
+  `wifi-Livebox-A1B2.svg`, `contact-Alex-Martin.png`, `qr-texte.png`.
 - Marge blanche de 4 modules incluse dans les exports, comme l'exige la spécification.
 - Thèmes clair et sombre suivant le réglage du système.
 
@@ -128,7 +163,7 @@ qui le scanne — pensez à un réseau invités séparé si l'affichage est publ
 | `standalone-template.html` | Source de la version autonome (HTML + CSS + interface) |
 | `build-standalone.js` | Génère `qr-code-generator.html` en y injectant `qrcode.js` et `payload.js` |
 | `qrcode.js` | Encodeur QR : versions 1 à 40, mode byte (UTF-8), Reed-Solomon, choix du masque |
-| `payload.js` | Contenu encodé : normalisation des URLs, format Wi-Fi, échappement |
+| `payload.js` | Contenu encodé : URLs, format Wi-Fi, texte brut, vCard, échappement |
 | `index.html`, `styles.css`, `app.js` | Application complète, avec réglages |
 | `tests/decode-roundtrip.js` | Tests de l'encodeur QR |
 | `tests/payload.js` | Tests des URLs et du format Wi-Fi |
@@ -147,9 +182,11 @@ de correction, à capacité pleine et pleine − 1, plus des URLs réalistes (UT
 réservés, `mailto:`, `tel:`) et le dépassement de capacité. Le test échoue aussi si
 `qr-code-generator.html` n'a pas été régénéré après une modification de `qrcode.js`.
 
-`tests/payload.js` couvre la normalisation des URLs et le format Wi-Fi : chaque caractère spécial
-échappé isolément, le piège du double échappement (`a\;b`), les valeurs hexadécimales, les
-réseaux ouverts et cachés, les longueurs de clé invalides.
+`tests/payload.js` couvre les quatre modes : chaque caractère spécial échappé isolément, le
+piège du double échappement (`a\;b`), les valeurs hexadécimales, les réseaux ouverts et cachés,
+les longueurs de clé invalides, la conservation du texte brut, et pour la vCard l'échappement
+des séparateurs, la conversion des retours à la ligne, les champs optionnels omis et la
+présence de CRLF.
 
 Les codes ont par ailleurs été décodés avec le lecteur natif du navigateur (`BarcodeDetector`)
 jusqu'à la version 28 : aperçu à l'écran, PNG et SVG exportés, et payloads Wi-Fi relus caractère

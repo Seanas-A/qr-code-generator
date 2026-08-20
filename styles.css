@@ -77,6 +77,7 @@ body {
 /* Onglets de mode */
 .tabs {
   display: flex;
+  flex-wrap: wrap;
   gap: 0.35rem;
   margin-bottom: 1.25rem;
   padding: 0.25rem;
@@ -86,7 +87,7 @@ body {
 }
 
 .tabs button {
-  flex: 1;
+  flex: 1 1 6rem;
   padding: 0.55rem 0.5rem;
   border: 1px solid transparent;
   border-radius: 7px;
@@ -340,4 +341,20 @@ input[type="range"].option__control {
   margin: 0.7rem 0 0;
   font-size: 0.82rem;
   color: var(--text-muted);
+}
+
+textarea.field__input {
+  resize: vertical;
+  min-height: 5.5rem;
+}
+
+.field--spaced {
+  margin-top: 1rem;
+}
+
+.optional {
+  text-transform: none;
+  letter-spacing: normal;
+  font-weight: 400;
+  opacity: 0.75;
 }

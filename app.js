@@ -7,20 +7,27 @@
 
   const QUIET_ZONE = 4; // marge blanche obligatoire, en modules
 
-  const tabs = {
-    url: document.getElementById('tab-url'),
-    wifi: document.getElementById('tab-wifi'),
-  };
-  const panes = {
-    url: document.getElementById('pane-url'),
-    wifi: document.getElementById('pane-wifi'),
-  };
+  const MODES = ['url', 'wifi', 'text', 'contact'];
+  const tabs = {};
+  const panes = {};
+  MODES.forEach(function (mode) {
+    tabs[mode] = document.getElementById('tab-' + mode);
+    panes[mode] = document.getElementById('pane-' + mode);
+  });
 
   const urlInput = document.getElementById('url-input');
   const ssidInput = document.getElementById('ssid-input');
   const securitySelect = document.getElementById('security-select');
   const passwordInput = document.getElementById('wifi-password');
   const hiddenCheck = document.getElementById('hidden-network');
+  const freeText = document.getElementById('free-text');
+  const contact = {
+    firstName: document.getElementById('contact-first'),
+    lastName: document.getElementById('contact-last'),
+    org: document.getElementById('contact-org'),
+    phone: document.getElementById('contact-phone'),
+    email: document.getElementById('contact-email'),
+  };
 
   const eccSelect = document.getElementById('ecc-select');
   const sizeRange = document.getElementById('size-range');
@@ -39,10 +46,21 @@
   // Dernier QR code généré, réutilisé par les exports.
   let current = null;
 
+  // Nom lisible, dérivé de ce que contient le code.
+  function slug(value) {
+    return String(value).trim().replace(/[^a-zA-Z0-9.\-]+/g, '-').replace(/^-+|-+$/g, '');
+  }
+
   function fileBaseName() {
     if (mode === 'wifi') {
-      const ssid = ssidInput.value.trim().replace(/[^a-zA-Z0-9.\-]+/g, '-').replace(/^-+|-+$/g, '');
-      return ssid ? 'wifi-' + ssid : 'wifi-qr';
+      return slug(ssidInput.value) ? 'wifi-' + slug(ssidInput.value) : 'wifi-qr';
+    }
+    if (mode === 'text') {
+      return 'qr-texte';
+    }
+    if (mode === 'contact') {
+      const name = slug(contact.firstName.value + '-' + contact.lastName.value);
+      return name ? 'contact-' + name : 'contact';
     }
     let host = '';
     try {
@@ -50,8 +68,8 @@
     } catch (err) {
       host = '';
     }
-    const slug = host.replace(/[^a-zA-Z0-9.\-]/g, '');
-    return slug ? 'qr-' + slug : 'qr-code';
+    const hostSlug = host.replace(/[^a-zA-Z0-9.\-]/g, '');
+    return hostSlug ? 'qr-' + hostSlug : 'qr-code';
   }
 
   function renderToCanvas(qr, targetPx) {
@@ -148,6 +166,36 @@
       return { text: text, describe: describe, notice: notes.join(' ') };
     }
 
+    if (mode === 'text') {
+      const raw = window.Payload.text(freeText.value);
+      if (raw === '') return { text: '', empty: 'Saisissez le texte à encoder.' };
+      const oneLine = raw.replace(/\s+/g, ' ').trim();
+      return {
+        text: raw,
+        describe: oneLine.length > 40 ? oneLine.slice(0, 39) + '…' : oneLine,
+        notice: '',
+      };
+    }
+
+    if (mode === 'contact') {
+      const fields = {
+        firstName: contact.firstName.value,
+        lastName: contact.lastName.value,
+        org: contact.org.value,
+        phone: contact.phone.value,
+        email: contact.email.value,
+      };
+      const card = window.Payload.vcard(fields);
+      if (card === '') return { text: '', empty: 'Saisissez au moins un prénom ou un nom.' };
+      const who = [fields.firstName.trim(), fields.lastName.trim()].filter(Boolean).join(' ');
+      const cardWarnings = window.Payload.vcardWarnings(fields);
+      return {
+        text: card,
+        describe: 'Fiche contact · ' + who,
+        notice: cardWarnings.length ? 'À vérifier : ' + cardWarnings.join(', ') + '.' : '',
+      };
+    }
+
     const url = window.Payload.url(urlInput.value);
     if (url === '') return { text: '', empty: 'Collez une adresse pour voir le QR code.' };
     return { text: url, describe: url.length > 46 ? url.slice(0, 45) + '…' : url, notice: '' };
@@ -189,7 +237,8 @@
       tabs[key].setAttribute('aria-selected', String(key === next));
       panes[key].hidden = key !== next;
     });
-    (next === 'wifi' ? ssidInput : urlInput).focus();
+    const firstField = { url: urlInput, wifi: ssidInput, text: freeText, contact: contact.firstName };
+    firstField[next].focus();
     generate();
   }
 
@@ -212,21 +261,25 @@
     debounceTimer = setTimeout(generate, 120);
   }
 
-  Object.keys(tabs).forEach(function (key) {
+  MODES.forEach(function (key) {
     tabs[key].addEventListener('click', function () { selectMode(key); });
   });
   // Navigation clavier entre onglets, comme attendu d'une barre d'onglets.
   document.querySelector('.tabs').addEventListener('keydown', function (event) {
     if (event.key !== 'ArrowRight' && event.key !== 'ArrowLeft') return;
     event.preventDefault();
-    selectMode(mode === 'url' ? 'wifi' : 'url');
+    const step = event.key === 'ArrowRight' ? 1 : -1;
+    const next = (MODES.indexOf(mode) + step + MODES.length) % MODES.length;
+    selectMode(MODES[next]);
     tabs[mode].focus();
   });
 
-  [urlInput, ssidInput, passwordInput].forEach(function (el) {
+  [urlInput, ssidInput, passwordInput, freeText, contact.firstName, contact.lastName,
+   contact.org, contact.phone, contact.email].forEach(function (el) {
     el.addEventListener('input', scheduleGenerate);
     el.addEventListener('keydown', function (event) {
-      if (event.key === 'Enter') {
+      // Dans la zone de texte, Entrée sert à passer à la ligne.
+      if (event.key === 'Enter' && el !== freeText) {
         clearTimeout(debounceTimer);
         generate();
       }

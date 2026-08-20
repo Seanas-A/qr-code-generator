@@ -10,13 +10,15 @@
   <main class="app">
     <header class="app__header">
       <h1>Générateur de QR code</h1>
-      <p class="app__subtitle">Un lien à partager, ou un réseau Wi-Fi auquel se connecter sans dicter la clé. Tout se fait dans le navigateur, aucune donnée n'est envoyée.</p>
+      <p class="app__subtitle">Un lien, un réseau Wi-Fi, du texte ou une fiche contact. Tout se fait dans le navigateur, aucune donnée n'est envoyée.</p>
     </header>
 
     <section class="panel">
       <div class="tabs" role="tablist" aria-label="Type de QR code">
         <button type="button" role="tab" id="tab-url" aria-controls="pane-url" aria-selected="true">Site web</button>
-        <button type="button" role="tab" id="tab-wifi" aria-controls="pane-wifi" aria-selected="false">Réseau Wi-Fi</button>
+        <button type="button" role="tab" id="tab-wifi" aria-controls="pane-wifi" aria-selected="false">Wi-Fi</button>
+        <button type="button" role="tab" id="tab-text" aria-controls="pane-text" aria-selected="false">Texte</button>
+        <button type="button" role="tab" id="tab-contact" aria-controls="pane-contact" aria-selected="false">Contact</button>
       </div>
 
       <div id="pane-url" role="tabpanel" aria-labelledby="tab-url">
@@ -57,6 +59,40 @@
         <div class="check">
           <input id="hidden-network" type="checkbox">
           <label for="hidden-network">Réseau caché (SSID non diffusé)</label>
+        </div>
+      </div>
+
+      <div id="pane-text" role="tabpanel" aria-labelledby="tab-text" hidden>
+        <label class="field">
+          <span class="field__label">Texte</span>
+          <textarea id="free-text" class="field__input" rows="4" placeholder="N'importe quel texte : un message, une référence, un numéro de série…" spellcheck="false"></textarea>
+        </label>
+      </div>
+
+      <div id="pane-contact" role="tabpanel" aria-labelledby="tab-contact" hidden>
+        <div class="options">
+          <label class="option">
+            <span class="option__label">Prénom</span>
+            <input id="contact-first" type="text" class="option__control" placeholder="Alex" autocomplete="off">
+          </label>
+          <label class="option">
+            <span class="option__label">Nom</span>
+            <input id="contact-last" type="text" class="option__control" placeholder="Martin" autocomplete="off">
+          </label>
+        </div>
+        <label class="field field--spaced">
+          <span class="field__label">Organisation <span class="optional">facultatif</span></span>
+          <input id="contact-org" type="text" class="field__input" placeholder="AS Monaco" autocomplete="off">
+        </label>
+        <div class="options">
+          <label class="option">
+            <span class="option__label">Téléphone</span>
+            <input id="contact-phone" type="text" class="option__control" placeholder="+377 12 34 56 78" autocomplete="off" spellcheck="false">
+          </label>
+          <label class="option">
+            <span class="option__label">E-mail</span>
+            <input id="contact-email" type="text" class="option__control" placeholder="alex@exemple.com" autocomplete="off" spellcheck="false">
+          </label>
         </div>
       </div>
 

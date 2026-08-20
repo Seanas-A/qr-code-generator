@@ -1,16 +1,22 @@
 /**
  * Construction du contenu encodé dans le QR code, selon le mode choisi.
  *
- * Deux modes :
- *   - « url »  : une adresse web, normalisée pour être ouvrable.
- *   - « wifi » : une configuration de réseau, que les téléphones reconnaissent
- *                pour se connecter sans saisir la clé (format ZXing, lu par
- *                iOS 11+ et Android).
+ * Quatre modes :
+ *   - « url »     : une adresse web, normalisée pour être ouvrable.
+ *   - « wifi »    : une configuration de réseau, que les téléphones reconnaissent
+ *                   pour se connecter sans saisir la clé (format ZXing, lu par
+ *                   iOS 11+ et Android).
+ *   - « text »    : du texte brut, encodé tel quel.
+ *   - « contact » : une fiche vCard 3.0, que les téléphones proposent d'ajouter
+ *                   au répertoire.
  *
  * API :
  *   Payload.url(texte)                        -> 'https://...'
  *   Payload.wifi({ ssid, security, password, hidden }) -> 'WIFI:T:WPA;S:...;P:...;;'
  *   Payload.wifiWarnings({ ... })             -> [messages] (problèmes probables côté téléphone)
+ *   Payload.text(texte)                       -> le texte inchangé
+ *   Payload.vcard({ firstName, lastName, org, phone, email }) -> 'BEGIN:VCARD...'
+ *   Payload.vcardWarnings({ ... })            -> [messages]
  */
 (function (global) {
   'use strict';
@@ -104,5 +110,80 @@
     return warnings;
   }
 
-  global.Payload = { url, wifi, wifiWarnings, escapeValue, SECURITY_TYPES };
+  // --- Texte brut ------------------------------------------------------------
+
+  // Encodé tel quel : ni normalisation ni découpage, c'est le mode « fourre-tout ».
+  function text(raw) {
+    const value = String(raw == null ? '' : raw);
+    return value.trim() === '' ? '' : value;
+  }
+
+  // --- Fiche contact (vCard 3.0) ---------------------------------------------
+
+  // vCard a ses propres règles : la virgule et le point-virgule séparent les
+  // valeurs et les composants d'un champ, et un retour à la ligne doit devenir
+  // la séquence littérale « \n » pour ne pas casser la structure ligne par ligne.
+  function escapeVCard(value) {
+    return String(value)
+      .replace(/([\\,;])/g, '\\$1')
+      .replace(/\r\n|\r|\n/g, '\\n');
+  }
+
+  function vcardFields(options) {
+    const opts = options || {};
+    const get = (key) => String(opts[key] == null ? '' : opts[key]).trim();
+    return {
+      firstName: get('firstName'),
+      lastName: get('lastName'),
+      org: get('org'),
+      phone: get('phone'),
+      email: get('email'),
+    };
+  }
+
+  function vcard(options) {
+    const f = vcardFields(options);
+
+    // Sans nom, le téléphone afficherait une fiche anonyme : rien à encoder.
+    if (f.firstName === '' && f.lastName === '') return '';
+
+    const fullName = [f.firstName, f.lastName].filter(Boolean).join(' ');
+    const lines = ['BEGIN:VCARD', 'VERSION:3.0'];
+
+    // N est structuré : Nom;Prénom;Autres;Préfixe;Suffixe. FN est le nom affiché,
+    // obligatoire en vCard 3.0.
+    lines.push('N:' + escapeVCard(f.lastName) + ';' + escapeVCard(f.firstName) + ';;;');
+    lines.push('FN:' + escapeVCard(fullName));
+    if (f.org !== '') lines.push('ORG:' + escapeVCard(f.org));
+    if (f.phone !== '') lines.push('TEL;TYPE=CELL:' + escapeVCard(f.phone));
+    if (f.email !== '') lines.push('EMAIL;TYPE=INTERNET:' + escapeVCard(f.email));
+    lines.push('END:VCARD');
+
+    // La spécification impose CRLF comme séparateur de lignes.
+    return lines.join('\r\n');
+  }
+
+  function vcardWarnings(options) {
+    const f = vcardFields(options);
+    const warnings = [];
+    if (f.phone === '' && f.email === '') {
+      warnings.push('ni téléphone ni e-mail : la fiche ne contiendra qu\'un nom');
+    }
+    if (f.email !== '' && f.email.indexOf('@') === -1) {
+      warnings.push('l\'adresse e-mail ne contient pas d\'arobase');
+    }
+    return warnings;
+  }
+
+  global.Payload = {
+    url,
+    wifi,
+    wifiWarnings,
+    text,
+    vcard,
+    vcardWarnings,
+    escapeValue,
+    escapeVCard,
+    SECURITY_TYPES,
+  };
 })(typeof window !== 'undefined' ? window : globalThis);

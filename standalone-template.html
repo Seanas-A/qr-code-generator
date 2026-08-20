@@ -55,17 +55,17 @@
   }
 
   /* Onglets de mode */
-  .tabs { display: flex; gap: .35rem; margin-bottom: 1.25rem; padding: .25rem;
+  .tabs { display: flex; flex-wrap: wrap; gap: .35rem; margin-bottom: 1.25rem; padding: .25rem;
           background: var(--bg); border: 1px solid var(--border); border-radius: 10px; }
   .tabs button {
-    flex: 1; padding: .55rem .5rem; border: 1px solid transparent; border-radius: 7px;
+    flex: 1 1 6rem; padding: .55rem .5rem; border: 1px solid transparent; border-radius: 7px;
     background: none; color: var(--muted); font: 600 .9rem inherit; font-family: inherit; cursor: pointer;
   }
   .tabs button[aria-selected="true"] { background: var(--surface); border-color: var(--border); color: var(--text); }
 
   label { display: block; margin-bottom: .4rem; font-size: .8rem; font-weight: 600;
           text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
-  input[type="text"], select {
+  input[type="text"], select, textarea {
     width: 100%;
     padding: .75rem .8rem;
     border: 1px solid var(--border);
@@ -75,6 +75,8 @@
     font: .95rem/1.4 ui-monospace, SFMono-Regular, Menlo, monospace;
   }
   select { font-family: inherit; }
+  textarea { resize: vertical; min-height: 5rem; }
+  .optional { text-transform: none; letter-spacing: normal; font-weight: 400; opacity: .75; }
   input:focus-visible, select:focus-visible, button:focus-visible {
     outline: 2px solid var(--accent); outline-offset: 2px;
   }
@@ -117,12 +119,14 @@
 <body>
 <main>
   <h1>Générateur de QR code</h1>
-  <p class="sub">Un lien à partager, ou un réseau Wi-Fi auquel se connecter sans dicter la clé. Tout est calculé sur votre appareil : ce fichier fonctionne sans connexion internet.</p>
+  <p class="sub">Un lien, un réseau Wi-Fi, du texte ou une fiche contact. Tout est calculé sur votre appareil : ce fichier fonctionne sans connexion internet.</p>
 
   <div class="card">
     <div class="tabs" role="tablist" aria-label="Type de QR code">
       <button type="button" role="tab" id="tab-url" aria-controls="pane-url" aria-selected="true">Site web</button>
-      <button type="button" role="tab" id="tab-wifi" aria-controls="pane-wifi" aria-selected="false">Réseau Wi-Fi</button>
+      <button type="button" role="tab" id="tab-wifi" aria-controls="pane-wifi" aria-selected="false">Wi-Fi</button>
+      <button type="button" role="tab" id="tab-text" aria-controls="pane-text" aria-selected="false">Texte</button>
+      <button type="button" role="tab" id="tab-contact" aria-controls="pane-contact" aria-selected="false">Contact</button>
     </div>
 
     <div id="pane-url" role="tabpanel" aria-labelledby="tab-url">
@@ -154,6 +158,40 @@
       <div class="check">
         <input id="hidden-network" type="checkbox">
         <label for="hidden-network">Réseau caché (SSID non diffusé)</label>
+      </div>
+    </div>
+
+    <div id="pane-text" role="tabpanel" aria-labelledby="tab-text" hidden>
+      <div class="field">
+        <label for="free-text">Texte</label>
+        <textarea id="free-text" rows="4" placeholder="N'importe quel texte : un message, une référence, un numéro de série…" spellcheck="false"></textarea>
+      </div>
+    </div>
+
+    <div id="pane-contact" role="tabpanel" aria-labelledby="tab-contact" hidden>
+      <div class="row">
+        <div class="field">
+          <label for="contact-first">Prénom</label>
+          <input id="contact-first" type="text" placeholder="Alex" autocomplete="off">
+        </div>
+        <div class="field">
+          <label for="contact-last">Nom</label>
+          <input id="contact-last" type="text" placeholder="Martin" autocomplete="off">
+        </div>
+      </div>
+      <div class="field">
+        <label for="contact-org">Organisation <span class="optional">facultatif</span></label>
+        <input id="contact-org" type="text" placeholder="AS Monaco" autocomplete="off">
+      </div>
+      <div class="row">
+        <div class="field">
+          <label for="contact-phone">Téléphone</label>
+          <input id="contact-phone" type="text" placeholder="+377 12 34 56 78" autocomplete="off" spellcheck="false">
+        </div>
+        <div class="field">
+          <label for="contact-email">E-mail</label>
+          <input id="contact-email" type="text" placeholder="alex@exemple.com" autocomplete="off" spellcheck="false">
+        </div>
       </div>
     </div>
 
@@ -192,19 +230,27 @@
   var ECC = 'M';        // correction d'erreur : bon compromis densité / robustesse
   var TARGET_PX = 1024; // taille visée pour les exports (impression confortable)
 
-  var tabs = {
-    url: document.getElementById('tab-url'),
-    wifi: document.getElementById('tab-wifi'),
-  };
-  var panes = {
-    url: document.getElementById('pane-url'),
-    wifi: document.getElementById('pane-wifi'),
-  };
+  var MODES = ['url', 'wifi', 'text', 'contact'];
+  var tabs = {};
+  var panes = {};
+  MODES.forEach(function (mode) {
+    tabs[mode] = document.getElementById('tab-' + mode);
+    panes[mode] = document.getElementById('pane-' + mode);
+  });
+
   var urlInput = document.getElementById('url');
   var ssidInput = document.getElementById('ssid');
   var securitySelect = document.getElementById('security');
   var passwordInput = document.getElementById('wifi-password');
   var hiddenCheck = document.getElementById('hidden-network');
+  var freeText = document.getElementById('free-text');
+  var contact = {
+    firstName: document.getElementById('contact-first'),
+    lastName: document.getElementById('contact-last'),
+    org: document.getElementById('contact-org'),
+    phone: document.getElementById('contact-phone'),
+    email: document.getElementById('contact-email'),
+  };
 
   var canvas = document.getElementById('canvas');
   var preview = document.getElementById('preview');
@@ -218,15 +264,26 @@
   var mode = 'url';
   var current = null;
 
+  // Nom lisible, dérivé de ce que contient le code.
+  function slug(value) {
+    return String(value).trim().replace(/[^a-zA-Z0-9.\-]+/g, '-').replace(/^-+|-+$/g, '');
+  }
+
   function fileName() {
     if (mode === 'wifi') {
-      var ssid = ssidInput.value.trim().replace(/[^a-zA-Z0-9.\-]+/g, '-').replace(/^-+|-+$/g, '');
-      return ssid ? 'wifi-' + ssid : 'wifi-qr';
+      return slug(ssidInput.value) ? 'wifi-' + slug(ssidInput.value) : 'wifi-qr';
+    }
+    if (mode === 'text') {
+      return 'qr-texte';
+    }
+    if (mode === 'contact') {
+      var name = slug(contact.firstName.value + '-' + contact.lastName.value);
+      return name ? 'contact-' + name : 'contact';
     }
     var host = '';
     try { host = new URL(current.text).hostname; } catch (e) { host = ''; }
-    var slug = host.replace(/[^a-zA-Z0-9.\-]/g, '');
-    return slug ? 'qr-' + slug : 'qr-code';
+    var hostSlug = host.replace(/[^a-zA-Z0-9.\-]/g, '');
+    return hostSlug ? 'qr-' + hostSlug : 'qr-code';
   }
 
   function draw(qr) {
@@ -311,6 +368,36 @@
       if (warnings.length) notes.unshift('À vérifier : ' + warnings.join(', ') + '.');
       return { text: text, describe: describe, notice: notes.join(' ') };
     }
+    if (mode === 'text') {
+      var raw = Payload.text(freeText.value);
+      if (raw === '') return { text: '', empty: 'Saisissez le texte à encoder.' };
+      var oneLine = raw.replace(/\s+/g, ' ').trim();
+      return {
+        text: raw,
+        describe: oneLine.length > 40 ? oneLine.slice(0, 39) + '…' : oneLine,
+        notice: '',
+      };
+    }
+
+    if (mode === 'contact') {
+      var fields = {
+        firstName: contact.firstName.value,
+        lastName: contact.lastName.value,
+        org: contact.org.value,
+        phone: contact.phone.value,
+        email: contact.email.value,
+      };
+      var card = Payload.vcard(fields);
+      if (card === '') return { text: '', empty: 'Saisissez au moins un prénom ou un nom.' };
+      var who = [fields.firstName.trim(), fields.lastName.trim()].filter(Boolean).join(' ');
+      var cardWarnings = Payload.vcardWarnings(fields);
+      return {
+        text: card,
+        describe: 'Fiche contact · ' + who,
+        notice: cardWarnings.length ? 'À vérifier : ' + cardWarnings.join(', ') + '.' : '',
+      };
+    }
+
     var url = Payload.url(urlInput.value);
     if (url === '') return { text: '', empty: 'Collez une adresse pour voir le QR code.' };
     return { text: url, describe: url.length > 46 ? url.slice(0, 45) + '…' : url, notice: '' };
@@ -346,7 +433,8 @@
       tabs[key].setAttribute('aria-selected', String(key === next));
       panes[key].hidden = key !== next;
     });
-    (next === 'wifi' ? ssidInput : urlInput).focus();
+    var firstField = { url: urlInput, wifi: ssidInput, text: freeText, contact: contact.firstName };
+    firstField[next].focus();
     generate();
   }
 
@@ -367,21 +455,25 @@
     timer = setTimeout(generate, 120);
   }
 
-  Object.keys(tabs).forEach(function (key) {
+  MODES.forEach(function (key) {
     tabs[key].addEventListener('click', function () { selectMode(key); });
   });
   // Navigation clavier entre onglets, comme attendu d'une barre d'onglets.
   document.querySelector('.tabs').addEventListener('keydown', function (e) {
     if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
     e.preventDefault();
-    selectMode(mode === 'url' ? 'wifi' : 'url');
+    var step = e.key === 'ArrowRight' ? 1 : -1;
+    var next = (MODES.indexOf(mode) + step + MODES.length) % MODES.length;
+    selectMode(MODES[next]);
     tabs[mode].focus();
   });
 
-  [urlInput, ssidInput, passwordInput].forEach(function (el) {
+  [urlInput, ssidInput, passwordInput, freeText, contact.firstName, contact.lastName,
+   contact.org, contact.phone, contact.email].forEach(function (el) {
     el.addEventListener('input', schedule);
     el.addEventListener('keydown', function (e) {
-      if (e.key === 'Enter') { clearTimeout(timer); generate(); }
+      // Dans la zone de texte, Entrée sert à passer à la ligne.
+      if (e.key === 'Enter' && el !== freeText) { clearTimeout(timer); generate(); }
     });
   });
   hiddenCheck.addEventListener('change', generate);

@@ -159,6 +159,103 @@ deepEqual('WEP longueur invalide',
 deepEqual('réseau ouvert : aucun avertissement',
   Payload.wifiWarnings({ security: 'nopass', password: '' }), []);
 
+// --- Texte brut --------------------------------------------------------------
+
+equal('texte inchangé', Payload.text('Bonjour le monde'), 'Bonjour le monde');
+equal('texte vide', Payload.text(''), '');
+equal('espaces seuls traités comme vide', Payload.text('   '), '');
+equal('espaces internes conservés', Payload.text('  a  b  '), '  a  b  ');
+equal('retours à la ligne conservés', Payload.text('ligne 1\nligne 2'), 'ligne 1\nligne 2');
+equal('caractères spéciaux non échappés', Payload.text('a;b:c,d"e\\f'), 'a;b:c,d"e\\f');
+equal('accents conservés', Payload.text('Café crème à 2 €'), 'Café crème à 2 €');
+
+// --- Fiche contact (vCard 3.0) ----------------------------------------------
+
+const CRLF = '\r\n';
+
+equal('fiche complète',
+  Payload.vcard({ firstName: 'Alex', lastName: 'Martin', org: 'AS Monaco',
+                  phone: '+377 12 34 56 78', email: 'alex@example.com' }),
+  ['BEGIN:VCARD', 'VERSION:3.0', 'N:Martin;Alex;;;', 'FN:Alex Martin', 'ORG:AS Monaco',
+   'TEL;TYPE=CELL:+377 12 34 56 78', 'EMAIL;TYPE=INTERNET:alex@example.com', 'END:VCARD'].join(CRLF));
+
+equal('champs optionnels omis',
+  Payload.vcard({ firstName: 'Alex', lastName: 'Martin' }),
+  ['BEGIN:VCARD', 'VERSION:3.0', 'N:Martin;Alex;;;', 'FN:Alex Martin', 'END:VCARD'].join(CRLF));
+
+equal('prénom seul',
+  Payload.vcard({ firstName: 'Alex', phone: '0600000000' }),
+  ['BEGIN:VCARD', 'VERSION:3.0', 'N:;Alex;;;', 'FN:Alex',
+   'TEL;TYPE=CELL:0600000000', 'END:VCARD'].join(CRLF));
+
+equal('nom seul',
+  Payload.vcard({ lastName: 'Martin' }),
+  ['BEGIN:VCARD', 'VERSION:3.0', 'N:Martin;;;;', 'FN:Martin', 'END:VCARD'].join(CRLF));
+
+equal('sans nom : rien à encoder',
+  Payload.vcard({ phone: '0600000000', email: 'a@b.com' }), '');
+equal('fiche vide', Payload.vcard({}), '');
+equal('espaces seuls : rien à encoder', Payload.vcard({ firstName: '  ', lastName: ' ' }), '');
+equal('espaces de bord retirés',
+  Payload.vcard({ firstName: '  Alex  ', lastName: ' Martin ' }),
+  ['BEGIN:VCARD', 'VERSION:3.0', 'N:Martin;Alex;;;', 'FN:Alex Martin', 'END:VCARD'].join(CRLF));
+
+// Séparateurs de vCard : virgule et point-virgule doivent être échappés, sinon
+// « Martin;Dupont » serait lu comme deux composants du champ N.
+equal('point-virgule échappé',
+  Payload.vcard({ firstName: 'Jean', lastName: 'Martin;Dupont' }),
+  ['BEGIN:VCARD', 'VERSION:3.0', 'N:Martin\\;Dupont;Jean;;;', 'FN:Jean Martin\\;Dupont',
+   'END:VCARD'].join(CRLF));
+
+equal('virgule échappée',
+  Payload.vcard({ firstName: 'Jean', lastName: 'Martin', org: 'AS Monaco, SA' }),
+  ['BEGIN:VCARD', 'VERSION:3.0', 'N:Martin;Jean;;;', 'FN:Jean Martin',
+   'ORG:AS Monaco\\, SA', 'END:VCARD'].join(CRLF));
+
+equal('antislash échappé une seule fois',
+  Payload.vcard({ firstName: 'A\\B', lastName: 'C' }),
+  ['BEGIN:VCARD', 'VERSION:3.0', 'N:C;A\\\\B;;;', 'FN:A\\\\B C', 'END:VCARD'].join(CRLF));
+
+// Un vrai retour à la ligne casserait la structure : il devient la séquence \n.
+equal('retour à la ligne converti',
+  Payload.vcard({ firstName: 'Alex', lastName: 'Martin', org: 'Ligne 1\nLigne 2' }),
+  ['BEGIN:VCARD', 'VERSION:3.0', 'N:Martin;Alex;;;', 'FN:Alex Martin',
+   'ORG:Ligne 1\\nLigne 2', 'END:VCARD'].join(CRLF));
+
+equal('accents conservés',
+  Payload.vcard({ firstName: 'Zoé', lastName: 'Lefèvre' }),
+  ['BEGIN:VCARD', 'VERSION:3.0', 'N:Lefèvre;Zoé;;;', 'FN:Zoé Lefèvre', 'END:VCARD'].join(CRLF));
+
+run++;
+{
+  // Le séparateur de lignes doit être CRLF, comme l'exige la spécification.
+  const card = Payload.vcard({ firstName: 'Alex', lastName: 'Martin' });
+  if (/[^\r]\n/.test(card)) {
+    failed++;
+    console.log('ÉCHEC  vCard : saut de ligne sans retour chariot (CRLF attendu)');
+  }
+}
+
+run++;
+{
+  const card = Payload.vcard({ firstName: 'Alex', lastName: 'Martin' });
+  if (!card.startsWith('BEGIN:VCARD') || !card.endsWith('END:VCARD')) {
+    failed++;
+    console.log('ÉCHEC  vCard : délimiteurs BEGIN/END manquants');
+  }
+}
+
+deepEqual('contact complet : aucun avertissement',
+  Payload.vcardWarnings({ firstName: 'Alex', phone: '0600000000', email: 'a@b.com' }), []);
+deepEqual('contact sans moyen de contact',
+  Payload.vcardWarnings({ firstName: 'Alex' }),
+  ['ni téléphone ni e-mail : la fiche ne contiendra qu\'un nom']);
+deepEqual('e-mail sans arobase',
+  Payload.vcardWarnings({ firstName: 'Alex', email: 'pas-un-email' }),
+  ['l\'adresse e-mail ne contient pas d\'arobase']);
+deepEqual('téléphone seul : aucun avertissement',
+  Payload.vcardWarnings({ firstName: 'Alex', phone: '0600000000' }), []);
+
 // --- Structure du format -----------------------------------------------------
 
 run++;
