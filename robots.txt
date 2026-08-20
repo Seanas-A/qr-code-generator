@@ -1,0 +1,9 @@
+# Ce fichier n'est lu par les robots que s'il se trouve à la racine d'un domaine.
+# Le site étant publié dans un sous-répertoire (…github.io/qr-code-generator/),
+# il reste sans effet pour l'instant : il deviendra actif le jour où le site
+# sera servi depuis un domaine propre. Le sitemap, lui, se soumet directement
+# dans la Google Search Console.
+User-agent: *
+Allow: /
+
+Sitemap: https://seanas-a.github.io/qr-code-generator/sitemap.xml

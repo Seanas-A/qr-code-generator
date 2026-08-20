@@ -218,6 +218,31 @@ faisait `.field + .field { margin-top }`, qui décalait de 14 px les paires « P
 « Téléphone / E-mail » et « Sécurité / Mot de passe » dans le fichier autonome.
 `tests/layout.js` vérifie cet invariant et refuse toute marge sur un champ.
 
+## Référencement
+
+Le site porte les métadonnées attendues : `title` et `description` calibrés pour l'affichage dans
+les résultats, `canonical` (la page étant atteignable via `/`, `/index.html` et avec des
+paramètres), Open Graph et Twitter Card pour les partages, et deux blocs JSON-LD —
+`WebApplication` pour décrire l'outil, `FAQPage` pour les questions traitées.
+
+Sous l'outil, environ 700 mots expliquent les quatre modes, les pièges du format Wi-Fi, les
+champs vCard reconnus et les tailles d'impression, suivis d'une FAQ. Ce contenu est le seul
+levier réel de classement : avec les 60 mots d'origine, la page n'offrait rien à indexer.
+L'outil reste au-dessus, pour que l'usage ne soit jamais retardé par la lecture.
+
+Deux points à connaître :
+
+- **Le balisage FAQ ne produit plus de résultat enrichi.** Google avait restreint cette
+  fonctionnalité en 2023 puis l'a supprimée en mai 2026. Le balisage reste valide et sert à la
+  compréhension de la page, y compris par les moteurs de réponse, mais aucune question ne
+  s'affichera dans les résultats.
+- **`robots.txt` n'est lu qu'à la racine d'un domaine.** Le site vivant dans un sous-répertoire
+  (`…github.io/qr-code-generator/`), le fichier présent ici reste sans effet jusqu'à l'usage d'un
+  domaine propre. Le `sitemap.xml`, lui, se soumet directement dans la Google Search Console.
+
+Le contenu éditorial et ces métadonnées ne concernent que le site : le fichier autonome reste
+volontairement minimal, puisqu'il n'est pas indexé.
+
 ## Structure
 
 | Fichier | Rôle |
@@ -231,6 +256,7 @@ faisait `.field + .field { margin-top }`, qui décalait de 14 px les paires « P
 | `tests/decode-roundtrip.js` | Tests de l'encodeur QR |
 | `tests/payload.js` | Tests des URLs, du Wi-Fi, du texte et de la vCard |
 | `tests/layout.js` | Vérifie l'invariant d'espacement des formulaires |
+| `sitemap.xml`, `robots.txt` | Exploration par les moteurs de recherche |
 
 ## Tests
 

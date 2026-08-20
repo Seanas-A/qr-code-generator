@@ -3,9 +3,117 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Générateur de QR code</title>
+  <title>Générateur de QR code gratuit : Wi-Fi, contact et liens</title>
+  <meta name="description" content="Créez un QR code pour un lien, un réseau Wi-Fi ou une fiche contact. Gratuit, sans inscription, aucune donnée envoyée. Export PNG et SVG.">
+  <link rel="canonical" href="https://seanas-a.github.io/qr-code-generator/">
+  <meta name="theme-color" content="#2f6df6">
+
+  <!-- Partage sur les réseaux et messageries -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://seanas-a.github.io/qr-code-generator/">
+  <meta property="og:title" content="Générateur de QR code gratuit : Wi-Fi, contact et liens">
+  <meta property="og:description" content="Créez un QR code pour un lien, un réseau Wi-Fi ou une fiche contact. Gratuit, sans inscription, aucune donnée envoyée. Export PNG et SVG.">
+  <meta property="og:locale" content="fr_FR">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Générateur de QR code gratuit : Wi-Fi, contact et liens">
+  <meta name="twitter:description" content="Créez un QR code pour un lien, un réseau Wi-Fi ou une fiche contact. Gratuit, sans inscription, aucune donnée envoyée. Export PNG et SVG.">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3.5' fill='%232f6df6'/%3E%3Cg fill='%23fff'%3E%3Crect x='3' y='3' width='4' height='4' rx='1'/%3E%3Crect x='9' y='3' width='4' height='4' rx='1'/%3E%3Crect x='3' y='9' width='4' height='4' rx='1'/%3E%3Crect x='9.4' y='9.4' width='1.7' height='1.7'/%3E%3Crect x='11.4' y='11.4' width='1.7' height='1.7'/%3E%3C/g%3E%3C/svg%3E">
   <link rel="stylesheet" href="styles.css">
+  <!-- Données structurées : décrivent l'outil et les questions traitées. Google ne
+       produit plus de résultat enrichi pour les FAQ depuis mai 2026, mais continue de
+       lire ce balisage pour comprendre la page, tout comme les moteurs de réponse. -->
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Générateur de QR code",
+  "url": "https://seanas-a.github.io/qr-code-generator/",
+  "applicationCategory": "UtilitiesApplication",
+  "operatingSystem": "Tout navigateur web",
+  "inLanguage": "fr",
+  "browserRequirements": "Fonctionne sans connexion après le premier chargement",
+  "description": "Générateur de QR codes pour liens, réseaux Wi-Fi, fiches contact vCard et texte libre. Tout est calculé dans le navigateur : aucune donnée envoyée.",
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "EUR"
+  },
+  "featureList": [
+    "QR code pour une adresse web",
+    "QR code de connexion Wi-Fi (WPA, WPA2, WPA3, WEP, réseau ouvert)",
+    "Fiche contact vCard 3.0",
+    "Texte libre",
+    "Export PNG et SVG",
+    "Impression d'une affichette",
+    "Fonctionnement hors ligne"
+  ]
+}
+  </script>
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Ce QR code peut-il expirer ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Non. Le contenu est encodé directement dans l'image, sans service de redirection. Aucun compte ni serveur intermédiaire, donc rien qui puisse cesser de fonctionner ou devenir payant, contrairement aux QR codes dits dynamiques."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Mes données sont-elles envoyées quelque part ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Non. Le calcul se fait entièrement dans le navigateur. La page charge cinq fichiers au démarrage puis n'émet plus aucune requête : ni les saisies, ni la clé Wi-Fi ne quittent l'appareil."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Peut-on modifier un QR code déjà imprimé ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Non, le contenu est figé dans le dessin. Si l'adresse peut changer, faites pointer le code vers une page que vous maîtrisez et modifiez la redirection de votre côté."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Faut-il choisir le PNG ou le SVG ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Le SVG pour l'impression et les agrandissements, puisqu'il reste net à toute taille. Le PNG pour un écran, un e-mail ou une messagerie."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Faut-il une connexion internet ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Seulement pour charger la page la première fois. Une version hors ligne en fichier unique fonctionne par simple double-clic, sans réseau."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Combien de texte tient dans un QR code ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "La limite théorique est de 2 953 octets, mais un code aussi rempli devient très dense et difficile à scanner. Restez sous quelques centaines de caractères."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Quelle taille faut-il pour imprimer un QR code ?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Comptez environ un demi-millimètre par module. Une adresse web courte (29 × 29 modules) tient en 3 cm, une fiche contact complète (73 × 73) demande 5 à 6 cm."
+      }
+    }
+  ]
+}
+  </script>
+
 </head>
 <body>
 <!--
@@ -268,6 +376,117 @@
         <p class="advanced__help">La taille fixe la dimension des images exportées. Plus la correction d'erreur est élevée, plus le code reste lisible s'il est abîmé ou partiellement masqué — mais plus il est dense. Les valeurs par défaut conviennent dans presque tous les cas.</p>
       </details>
     </section>
+
+    <section class="content">
+      <h2>Quatre types de QR codes</h2>
+      <p>
+        Un QR code n'est qu'un texte encodé en carré noir et blanc. Ce qui change d'un usage à
+        l'autre, c'est le <strong>format</strong> de ce texte : une adresse web s'ouvre dans le
+        navigateur, une configuration Wi-Fi déclenche la connexion, une fiche vCard propose
+        d'ajouter un contact au répertoire. Cet outil produit les quatre : lien, réseau Wi-Fi,
+        texte libre et fiche contact.
+      </p>
+
+      <h2>Créer un QR code pour un réseau Wi-Fi</h2>
+      <p>
+        Saisissez le nom du réseau (SSID) et sa clé : le téléphone se connecte seul après le scan,
+        sans que personne n'ait à dicter le mot de passe. Trois détails font échouer la plupart des
+        générateurs approximatifs, et sont traités ici :
+      </p>
+      <ul>
+        <li>
+          <strong>Le WPA3</strong> doit être déclaré comme <code>WPA</code>, jamais comme
+          <code>SAE</code> : les téléphones traitent <code>WPA</code> comme un joker et négocient
+          le protocole réellement proposé par la box, alors que <code>SAE</code> est rejeté par
+          beaucoup de lecteurs.
+        </li>
+        <li>
+          <strong>Les caractères spéciaux</strong> — point-virgule, deux-points, virgule,
+          guillemet, antislash — délimitent les champs du format et doivent être échappés, sinon la
+          clé transmise est fausse.
+        </li>
+        <li>
+          <strong>Un réseau caché</strong> exige une mention explicite, sans laquelle le téléphone
+          ne trouvera jamais le réseau.
+        </li>
+      </ul>
+
+      <h2>Fiche contact : les champs reconnus par iOS et Android</h2>
+      <p>
+        La fiche suit le format vCard 3.0, celui que les deux systèmes proposent spontanément
+        d'ajouter au répertoire. Sont pris en charge : nom et prénom, organisation, fonction,
+        téléphone mobile et de bureau distingués, adresse e-mail, autant de liens que nécessaire
+        (site web, profil LinkedIn), adresse postale et note libre.
+      </p>
+
+      <h2>Quelle taille pour imprimer un QR code</h2>
+      <p>
+        Comptez environ <strong>un demi-millimètre par module</strong> — un module étant l'un des
+        petits carrés de la grille. Le nombre de modules dépend de la quantité de texte encodé,
+        et il est affiché sous l'aperçu :
+      </p>
+      <ul>
+        <li>une adresse web courte donne une grille de 29 × 29 : <strong>3 cm</strong> suffisent ;</li>
+        <li>une configuration Wi-Fi tourne autour de 33 × 33, soit <strong>3 à 4 cm</strong> ;</li>
+        <li>une fiche contact complète atteint 73 × 73 et demande <strong>5 à 6 cm</strong>.</li>
+      </ul>
+      <p>
+        Pour une affiche lue à distance, doublez ces valeurs. Le format SVG est vectoriel : il
+        s'agrandit sans perte, contrairement au PNG.
+      </p>
+
+      <h2>Questions fréquentes</h2>
+
+      <h3>Ce QR code peut-il expirer ?</h3>
+      <p>
+        Non. Le contenu est encodé directement dans l'image, sans passer par un service de
+        redirection. Aucun compte, aucun serveur intermédiaire, donc rien qui puisse cesser de
+        fonctionner ni devenir payant. C'est la différence avec les QR codes dits « dynamiques »,
+        qui pointent vers une URL de suivi et dépendent d'un abonnement.
+      </p>
+
+      <h3>Mes données sont-elles envoyées quelque part ?</h3>
+      <p>
+        Non. Le calcul se fait entièrement dans votre navigateur. La page charge cinq fichiers au
+        démarrage, puis n'émet plus aucune requête : ni ce que vous saisissez, ni la clé de votre
+        réseau Wi-Fi ne quittent votre appareil.
+      </p>
+
+      <h3>Peut-on modifier un QR code déjà imprimé ?</h3>
+      <p>
+        Non, le contenu est figé dans le dessin. Si l'adresse est susceptible de changer, faites
+        pointer le code vers une page que vous maîtrisez et modifiez la redirection de votre côté.
+      </p>
+
+      <h3>PNG ou SVG ?</h3>
+      <p>
+        Le SVG pour tout ce qui sera imprimé ou agrandi, puisqu'il reste net à n'importe quelle
+        taille. Le PNG pour un écran, un e-mail ou une messagerie, où il est reconnu partout.
+      </p>
+
+      <h3>Faut-il une connexion internet ?</h3>
+      <p>
+        Seulement pour charger la page la première fois. Vous pouvez aussi télécharger la version
+        hors ligne : un fichier unique qui fonctionne par simple double-clic, sans réseau, et que
+        vous pouvez transmettre ou archiver.
+      </p>
+
+      <h3>Combien de texte tient dans un QR code ?</h3>
+      <p>
+        La limite théorique est de 2 953 octets, mais un code aussi rempli devient très dense et
+        difficile à scanner. En pratique, restez sous quelques centaines de caractères pour un
+        scan confortable.
+      </p>
+
+      <h3>Mon QR code ne se scanne pas, pourquoi ?</h3>
+      <p>
+        Presque toujours parce qu'il est trop petit pour sa densité. Réduisez le texte encodé,
+        imprimez plus grand, ou baissez le niveau de correction d'erreur dans les options — un
+        niveau élevé protège mieux un code abîmé, mais ajoute des modules. Conservez également la
+        marge blanche autour du code : elle fait partie de la spécification.
+      </p>
+    </section>
+
     <footer class="app__footer">
       <svg class="icon" aria-hidden="true"><use href="#icon-shield"/></svg>
       Tout est calculé dans votre navigateur, aucune donnée n'est envoyée.
